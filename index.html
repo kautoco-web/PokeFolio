@@ -1,0 +1,3035 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pokéfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+body{background:#0a0a0a;color:#c8d0f0;font-family:'Rajdhani',sans-serif;overflow:hidden;height:100vh}
+#root{height:100vh;display:flex;flex-direction:column}
+@keyframes glitch-din{0%,90%,100%{color:#e8192c;text-shadow:none}91%{color:#ff2d78;text-shadow:-2px 0 #00e676}93%{color:#e8192c;text-shadow:2px 0 #ff2d78}}
+@keyframes floatCard0{0%,100%{transform:translate(-120px,-20px) rotate(-8deg)}50%{transform:translate(-120px,-36px) rotate(-8deg)}}
+@keyframes floatCard1{0%,100%{transform:translate(10px,10px) rotate(2deg)}50%{transform:translate(10px,-6px) rotate(2deg)}}
+@keyframes floatCard2{0%,100%{transform:translate(130px,-15px) rotate(10deg)}50%{transform:translate(130px,-31px) rotate(10deg)}}
+@keyframes skyMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes popOut{0%{transform:translate(-50%,-50%) scale(0.15) rotate(-12deg);opacity:0;filter:brightness(3)}40%{transform:translate(-50%,-50%) scale(1.08) rotate(2deg);opacity:1;filter:brightness(1.4)}65%{transform:translate(-50%,-50%) scale(0.96) rotate(-1deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(-1.5deg);opacity:1}}
+@keyframes glowPulse{0%,100%{opacity:1}50%{opacity:0.7}}
+</style>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+window.useState  = React.useState;
+window.useEffect = React.useEffect;
+window.useRef    = React.useRef;
+</script>
+<script type="text/babel">
+const { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } = Recharts;
+
+const BASE="#0a0a0a",RAISED="#161616",SHADOW="#111111";
+const RED="#e8192c",PINK="#ff2d78",PURPLE="#9d4edd",GREEN="#00e676";
+const MUTED="#E8EEFF",TEXT="#c8d0f0",WHITE="#eef0ff";
+const FF_ORB="Orbitron,monospace",FF_RAJ="Rajdhani,sans-serif",FF_STM="Share Tech Mono,monospace";
+const PTCG_HEADERS = {"X-Api-Key": "57e0c37a-51f8-4ba3-8ab4-e5e47b3b4e82"};
+
+const EXPLORE_CARDS=[
+  {name:"Charizard ex",         set:"Scarlet & Violet 151",num:"006",rarity:"Special Illustration Rare",val:"1 320 kr",chg:"+18 kr",up:true, a:"#7c2d12",b:"#3b0a00",acc:"#fb923c",img:"https://images.pokemontcg.io/sv3pt5/6_hires.png"},
+  {name:"Umbreon VMAX",         set:"Evolving Skies",      num:"215",rarity:"Alt Art",                  val:"5 200 kr",chg:"+42 kr",up:true, a:"#1a1a3e",b:"#0d0d22",acc:"#a78bfa",img:"https://images.pokemontcg.io/swsh7/215_hires.png"},
+  {name:"Rayquaza VMAX",        set:"Evolving Skies",      num:"218",rarity:"Alt Art",                  val:"3 100 kr",chg:"+94 kr",up:true, a:"#064e3b",b:"#022c1f",acc:"#34d399",img:"https://images.pokemontcg.io/swsh7/218_hires.png"},
+  {name:"Mewtwo ex",            set:"Scarlet & Violet 151",num:"205",rarity:"Special Illustration Rare",val:"2 100 kr",chg:"+25 kr",up:true, a:"#3b0764",b:"#1e0338",acc:"#c084fc",img:"https://images.pokemontcg.io/sv3pt5/205_hires.png"},
+  {name:"Lugia V",              set:"Silver Tempest",      num:"186",rarity:"Alt Art",                  val:"1 650 kr",chg:"-12 kr",up:false,a:"#1e3a5f",b:"#0f2235",acc:"#93c5fd",img:"https://images.pokemontcg.io/swsh12/186_hires.png"},
+  {name:"Pikachu VMAX",         set:"Vivid Voltage",       num:"188",rarity:"Rainbow Rare",             val:"890 kr",  chg:"+8 kr", up:true, a:"#713f12",b:"#422006",acc:"#facc15",img:"https://images.pokemontcg.io/swsh4/188_hires.png"},
+  {name:"Mew VMAX",             set:"Fusion Strike",       num:"269",rarity:"Alt Art",                  val:"2 200 kr",chg:"-18 kr",up:false,a:"#4c0519",b:"#2d0010",acc:"#fb7185",img:"https://images.pokemontcg.io/swsh8/269_hires.png"},
+  {name:"Espeon VMAX",          set:"Evolving Skies",      num:"208",rarity:"Alt Art",                  val:"4 800 kr",chg:"+62 kr",up:true, a:"#312e81",b:"#1e1b4b",acc:"#a78bfa",img:"https://images.pokemontcg.io/swsh7/208_hires.png"},
+  {name:"Charizard VMAX",       set:"Darkness Ablaze",     num:"020",rarity:"Rainbow Rare",             val:"14 200 kr",chg:"+180 kr",up:true,a:"#7c2d12",b:"#3b0a00",acc:"#fb923c",img:"https://images.pokemontcg.io/swsh3/20_hires.png"},
+  {name:"Gengar VMAX",          set:"Fusion Strike",       num:"271",rarity:"Alt Art",                  val:"3 400 kr",chg:"+28 kr",up:true, a:"#2d1b69",b:"#1a0f3d",acc:"#c084fc",img:"https://images.pokemontcg.io/swsh8/271_hires.png"},
+  {name:"Palkia VSTAR",         set:"Astral Radiance",     num:"208",rarity:"Special Art Rare",         val:"1 100 kr",chg:"+11 kr",up:true, a:"#1e3a5f",b:"#0f2235",acc:"#38bdf8",img:"https://images.pokemontcg.io/swsh10/208_hires.png"},
+  {name:"Eevee VMAX",           set:"Evolving Skies",      num:"207",rarity:"Alt Art",                  val:"2 800 kr",chg:"+33 kr",up:true, a:"#713f12",b:"#422006",acc:"#fbbf24",img:"https://images.pokemontcg.io/swsh7/207_hires.png"},
+];
+
+
+const FREE_LIMITS = { binders:1, cards:50 };
+const MASTER_USERS = []; // email addresses with Master — extend as needed
+
+
+function FieldInput({label,value,onChange,type="text",placeholder="",readOnly=false}){
+  return(
+    <div style={{marginBottom:16}}>
+      <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:1.5,marginBottom:6}}>{label}</div>
+      <div style={{background:SHADOW,borderRadius:10,padding:"12px 16px",border:"1px solid rgba(255,255,255,0.08)"}}>
+        <input type={type} value={value} onChange={e=>onChange(e.target.value)}
+          readOnly={readOnly} placeholder={placeholder}
+          style={{background:"none",border:"none",outline:"none",color:WHITE,
+            fontFamily:FF_RAJ,fontSize:15,width:"100%",caretColor:RED}}/>
+      </div>
+    </div>
+  );
+}
+
+function CyberBtn({children,color=RED,onClick,lg=false}){
+  const [h,setH]=useState(false);
+  return(
+    <button onClick={onClick}
+      onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      style={{display:"inline-flex",alignItems:"center",gap:8,padding:lg?"14px 32px":"9px 20px",
+        borderRadius:10,border:`1px solid ${color}`,cursor:"pointer",
+        background:h?color:"transparent",color:h?"#fff":color,
+        fontFamily:FF_ORB,fontSize:lg?14:12,fontWeight:700,letterSpacing:0.5,
+        transition:"all .2s",boxShadow:h?`0 0 20px ${color}44`:"none"}}>
+      {children}
+    </button>
+  );
+}
+
+function BackBtn({onClick}){
+  return(
+    <div onClick={onClick} style={{display:"inline-flex",alignItems:"center",gap:8,cursor:"pointer",
+      fontFamily:FF_STM,fontSize:11,color:MUTED,letterSpacing:1,
+      padding:"7px 14px",background:SHADOW,borderRadius:8,
+      boxShadow:"3px 3px 8px #000,-3px -3px 8px "+RAISED,marginBottom:32}}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      TILLBAKA
+    </div>
+  );
+}
+
+
+/* ── PORTFOLIO PAGE ── */
+
+const TYPE_COLORS = [
+  ["#7c2d12","#3b0a00","#fb923c"],["#1e3a5f","#0f2235","#93c5fd"],
+  ["#3b0764","#1e0338","#c084fc"],["#1a1a3e","#0d0d22","#f59e0b"],
+  ["#064e3b","#022c1f","#34d399"],["#4a3000","#2a1a00","#facc15"],
+  ["#2d1b69","#1a0f3d","#a78bfa"],["#4c0519","#2d0010","#fb7185"],
+];
+
+/* ── SLOT CARD ── */
+function SlotCard({ slot, index, onAdd, onRemove }) {
+  const [hov, setHov] = useState(false);
+  if (slot) {
+    return (
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ aspectRatio:"2/3", borderRadius:10, overflow:"hidden", position:"relative", cursor:"default",
+          background:`linear-gradient(145deg,${slot.a},${slot.b})`,
+          border:`1px solid ${hov?"rgba(255,255,255,0.3)":"rgba(255,255,255,0.1)"}`,
+          boxShadow: hov?`0 8px 24px #000,0 0 20px ${slot.acc||"#fff"}33`:`0 4px 12px #000`,
+          transform: hov?"scale(1.04)":"scale(1)", transition:"all .2s",
+          display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${slot.pid}.png`}
+          alt="" style={{ width:"88%", imageRendering:"pixelated" }}/>
+        {hov && (
+          <div onClick={()=>onRemove(index)} style={{ position:"absolute", inset:0,
+            background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div onClick={()=>onAdd(index)} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ aspectRatio:"2/3", borderRadius:10, cursor:"pointer", transition:"all .2s",
+        border: hov?`1px dashed ${RED}`:`1px dashed rgba(255,255,255,0.12)`,
+        background: hov?`${RED}0a`:"rgba(255,255,255,0.02)",
+        display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke={hov?RED:"rgba(255,255,255,0.25)"} strokeWidth="2" strokeLinecap="round" style={{transition:"stroke .2s"}}>
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── BINDER CARD (overview) ── */
+const COVER_PRESETS = [
+  {a:"#7c2d12",b:"#3b0a00",acc:"#fb923c"},
+  {a:"#1a1a3e",b:"#0d0d22",acc:"#f59e0b"},
+  {a:"#064e3b",b:"#022c1f",acc:"#34d399"},
+  {a:"#3b0764",b:"#1e0338",acc:"#c084fc"},
+  {a:"#1e3a5f",b:"#0f2235",acc:"#93c5fd"},
+  {a:"#4c0519",b:"#2d0010",acc:"#fb7185"},
+  {a:"#422006",b:"#1c0e02",acc:"#f97316"},
+  {a:"#1a2e05",b:"#0f1a03",acc:"#a3e635"},
+];
+
+function BinderCard({ b, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ borderRadius:16, overflow:"hidden", cursor:"pointer",
+        border:`1px solid ${hov?`${b.acc||"#fb923c"}66`:"rgba(255,255,255,0.07)"}`,
+        boxShadow: hov?`0 12px 36px #000,0 0 30px ${b.acc||"#fb923c"}22`:`4px 4px 16px #000`,
+        transform: hov?"translateY(-4px)":"none", transition:"all .25s" }}>
+      {/* Cover */}
+      <div style={{ height:160, background:`linear-gradient(145deg,${b.a||"#1a1a1a"},${b.b||"#0a0a0a"})`,
+        display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute",inset:0,
+          background:"linear-gradient(135deg,rgba(255,255,255,0.12) 0%,transparent 40%,rgba(255,255,255,0.05) 65%,transparent 85%)",
+          pointerEvents:"none" }}/>
+        <div style={{ position:"absolute",inset:0,
+          backgroundImage:"repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(255,255,255,0.03) 5px,rgba(255,255,255,0.03) 10px)",
+          pointerEvents:"none" }}/>
+        {/* Pokeball watermark - same style as landing page */}
+        <svg viewBox="0 0 200 200" width="130" height="130" style={{opacity:0.12,position:"absolute"}}>
+          {/* Top half red */}
+          <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={b.acc||"#fb923c"}/>
+          {/* Outer circle */}
+          <circle cx="100" cy="100" r="90" fill="none" stroke={b.acc||"#fb923c"} strokeWidth="8"/>
+          {/* Center band */}
+          <rect x="10" y="93" width="180" height="14" fill={b.acc||"#fb923c"}/>
+          {/* Center button outer */}
+          <circle cx="100" cy="100" r="22" fill="#0a0a0a" stroke={b.acc||"#fb923c"} strokeWidth="8"/>
+          {/* Center button inner */}
+          <circle cx="100" cy="100" r="10" fill={b.acc||"#fb923c"} opacity="0.5"/>
+        </svg>
+        {/* Binder name on cover */}
+        <div style={{ position:"absolute", bottom:10, left:0, right:0, textAlign:"center",
+          fontFamily:FF_ORB, fontSize:13, fontWeight:900, color:"rgba(255,255,255,0.9)",
+          letterSpacing:0.5, padding:"0 12px",
+          textShadow:"0 2px 8px rgba(0,0,0,0.8)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+          {b.name}
+        </div>
+      </div>
+      {/* Footer */}
+      <div style={{ padding:"12px 16px", background:SHADOW, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ fontFamily:FF_STM, fontSize:10, color:MUTED, letterSpacing:1 }}>
+          {b.cards||0} KORT
+        </div>
+        <div style={{ fontFamily:FF_ORB, fontSize:12, fontWeight:900, color:WHITE }}>{b.val||"0 kr"}</div>
+      </div>
+    </div>
+  );
+}
+
+
+function DraggableCard({ p, c, cardData, onDragStart, onDragEnd }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div draggable
+      onDragStart={e=>{ e.dataTransfer.effectAllowed="copy"; onDragStart(); }}
+      onDragEnd={onDragEnd}
+      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ aspectRatio:"2/3", borderRadius:10, cursor:"grab",
+        background:`linear-gradient(145deg,${c[0]},${c[1]})`,
+        border:`1px solid ${hov?(c[2]||RED)+"88":"rgba(255,255,255,0.1)"}`,
+        boxShadow: hov?`0 8px 20px #000,0 0 16px ${c[2]||RED}33`:"0 4px 10px #000",
+        transform: hov?"scale(1.05)":"scale(1)", transition:"all .2s" }}/>
+  );
+}
+
+function BinderView({ binder, onBack, onUpdate, onCardClick }) {
+  const [activePage,  setActivePage]  = useState(0);
+  const [showSearch,  setShowSearch]  = useState(false);
+  const [query,       setQuery]       = useState("");
+  const [results,     setResults]     = useState([]);
+  const [loading,     setLoading]     = useState(false);
+  const [dragCard,    setDragCard]    = useState(null);
+  const [dragFromIdx, setDragFromIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
+
+  const SLOTS = 25;
+  const pages = (binder.pages && binder.pages.length > 0) ? binder.pages : [Array(SLOTS).fill(null)];
+  const currentPage = pages[activePage] || Array(SLOTS).fill(null);
+  const slots = Array.from({length: SLOTS}, (_, i) => currentPage[i] || null);
+  const allCards = pages.flatMap(p => (p || []).filter(Boolean));
+  const filled = allCards.length;
+  const totalVal = filled * 120;
+
+  function addPage() {
+    const np = [...pages, Array(SLOTS).fill(null)];
+    onUpdate({ ...binder, pages: np });
+    setActivePage(np.length - 1);
+  }
+
+  function dropOnSlot(idx) {
+    if (!dragCard && dragFromIdx === null) return;
+    if (slots[idx] && dragFromIdx === null) return;
+    const ns = [...slots];
+    if (dragFromIdx !== null) {
+      const tmp = ns[idx];
+      ns[idx] = ns[dragFromIdx];
+      ns[dragFromIdx] = tmp;
+    } else {
+      ns[idx] = { pid: dragCard.id, a: dragCard.a, b: dragCard.b, acc: dragCard.acc, cardData: dragCard.cardData };
+    }
+    const np = pages.map((p, i) => i === activePage ? ns : p);
+    onUpdate({ ...binder, pages: np, cards: np.flatMap(p=>(p||[]).filter(Boolean)).length });
+    setDragCard(null); setDragFromIdx(null); setDragOverIdx(null);
+  }
+
+  function removeCard(i) {
+    const ns = [...slots]; ns[i] = null;
+    const np = pages.map((p, pi) => pi === activePage ? ns : p);
+    onUpdate({ ...binder, pages: np, cards: np.flatMap(p=>(p||[]).filter(Boolean)).length });
+  }
+
+  async function doSearch(q) {
+    if (!q.trim()) { setResults([]); return; }
+    setLoading(true);
+    const lower = q.toLowerCase();
+    const hits = EXPLORE_CARDS.filter(c =>
+      c.name.toLowerCase().includes(lower) ||
+      c.set.toLowerCase().includes(lower) ||
+      (c.rarity && c.rarity.toLowerCase().includes(lower))
+    );
+    setResults(hits);
+    setLoading(false);
+  }
+
+  return (
+    <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", background:BASE, overflow:"hidden" }}>
+
+      {/* Header */}
+      <div style={{ flexShrink:0, padding:"12px 20px", display:"flex", alignItems:"center", gap:14,
+        borderBottom:`1px solid rgba(255,255,255,0.06)`, background:SHADOW }}>
+        <div onClick={onBack}
+          onMouseEnter={e=>{e.currentTarget.style.background=RED;e.currentTarget.style.borderColor=RED;}}
+          onMouseLeave={e=>{e.currentTarget.style.background=RAISED;e.currentTarget.style.borderColor="rgba(255,255,255,0.15)";}}
+          style={{ cursor:"pointer", display:"flex", alignItems:"center", gap:8, padding:"8px 16px",
+            borderRadius:9, border:"1px solid rgba(255,255,255,0.15)", flexShrink:0, transition:"all .2s",
+            background:RAISED, fontFamily:FF_STM, fontSize:11, color:WHITE, letterSpacing:1,
+            boxShadow:"0 2px 8px rgba(0,0,0,0.4)" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={WHITE} strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          TILLBAKA
+        </div>
+        <div style={{flex:1}}>
+          <div style={{ fontFamily:FF_ORB, fontSize:16, fontWeight:900, color:WHITE }}>{binder.name}</div>
+          <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:1, marginTop:1 }}>
+            {filled} KORT · {pages.length} {pages.length===1?"SIDA":"SIDOR"}
+          </div>
+        </div>
+        {/* Toggle analysis/search */}
+        <div onClick={()=>setShowSearch(s=>!s)}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=RED;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=showSearch?RED:"rgba(255,255,255,0.08)";}}
+          style={{ cursor:"pointer", padding:"6px 14px", borderRadius:8, flexShrink:0,
+            border:`1px solid ${showSearch?RED:"rgba(255,255,255,0.08)"}`,
+            background: showSearch?`${RED}18`:"transparent",
+            fontFamily:FF_STM, fontSize:10, color:showSearch?RED:MUTED, letterSpacing:1, transition:"all .2s" }}>
+          {showSearch ? "◀ ANALYS" : "SÖK KORT ▶"}
+        </div>
+      </div>
+
+      {/* Body: 50/50 */}
+      <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
+
+        {/* LEFT: card grid */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", borderRight:`1px solid rgba(255,255,255,0.06)` }}>
+          <div style={{ flex:1, overflowY:"auto", scrollbarWidth:"none", padding:"16px 20px" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+              {slots.map((s, i) => {
+                const isOver = dragOverIdx === i;
+                const isEmpty = !s;
+                return (
+                  <div key={i}
+                    draggable={!!s}
+                    onDragStart={e=>{ if(s){ e.dataTransfer.effectAllowed="move"; setDragFromIdx(i); setDragCard(null); } }}
+                    onDragEnd={()=>{ setDragFromIdx(null); setDragOverIdx(null); }}
+                    onDragOver={e=>{ if((isEmpty&&(dragCard||dragFromIdx!==null))||(s&&dragFromIdx!==null&&dragFromIdx!==i)){e.preventDefault();setDragOverIdx(i);} }}
+                    onDragLeave={()=>setDragOverIdx(null)}
+                    onDrop={()=>dropOnSlot(i)}
+                    onMouseEnter={e=>{ if(isEmpty&&!dragCard&&dragFromIdx===null){ e.currentTarget.style.background="rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.28)"; e.currentTarget.style.transform="scale(1.04)"; } if(s&&!dragFromIdx){ e.currentTarget.style.transform="scale(1.05)"; e.currentTarget.style.boxShadow=`0 8px 24px #000,0 0 20px ${s.acc||RED}55`; e.currentTarget.style.borderColor=`${s.acc||RED}88`; } }}
+                    onMouseLeave={e=>{ if(isEmpty&&!dragCard&&dragFromIdx===null){ e.currentTarget.style.background="rgba(255,255,255,0.02)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.12)"; e.currentTarget.style.transform="scale(1)"; } if(s){ e.currentTarget.style.transform="scale(1)"; e.currentTarget.style.boxShadow="0 4px 12px #000"; e.currentTarget.style.borderColor="rgba(255,255,255,0.12)"; } }}
+                    style={{ aspectRatio:"2/3", borderRadius:10, position:"relative", overflow:"hidden",
+                      transition:"all .2s",
+                      background: s ? `linear-gradient(145deg,${s.a},${s.b})` : isOver ? `${RED}18` : "rgba(255,255,255,0.02)",
+                      border: s ? `1px solid ${isOver?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.12)"}` : isOver ? `1px solid ${RED}` : `1px dashed rgba(255,255,255,0.12)`,
+                      boxShadow: isOver ? `0 0 20px ${s?WHITE:RED}44` : s ? "0 4px 12px #000" : "none",
+                      transform: isOver ? "scale(1.04)" : dragFromIdx===i ? "scale(0.95)" : "scale(1)",
+                      opacity: dragFromIdx===i ? 0.4 : 1,
+                      cursor: s ? "pointer" : isEmpty ? (dragCard||dragFromIdx!==null?"copy":"pointer") : "default",
+                      display:"flex", alignItems:"center", justifyContent:"center" }}
+                    onClick={()=>{
+                      if(s && onCardClick) { const cd = s.cardData || {name:`Pokémon #${s.pid}`, a:s.a, b:s.b, acc:s.acc}; onCardClick(cd); }
+                      else if(isEmpty&&dragFromIdx===null&&!dragCard){ setShowSearch(true); setQuery(""); setResults([]); }
+                    }}>
+                    {s
+                      ? <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${s.pid}.png`}
+                          alt="" style={{ width:"88%", imageRendering:"pixelated", pointerEvents:"none" }}/>
+                      : isOver
+                        ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                        : <svg viewBox="0 0 200 200" width="55%" height="55%" style={{opacity:0.12}}>
+                            <circle cx="100" cy="100" r="90" fill="#0a0a0a" stroke="white" strokeWidth="12"/>
+                            <path d="M10,100 A90,90 0 0,1 190,100 Z" fill="rgba(255,255,255,0.15)"/>
+                            <rect x="10" y="92" width="180" height="16" fill="#0a0a0a"/>
+                            <line x1="10" y1="92" x2="190" y2="92" stroke="white" strokeWidth="10"/>
+                            <line x1="10" y1="108" x2="190" y2="108" stroke="white" strokeWidth="10"/>
+                            <circle cx="100" cy="100" r="26" fill="#0a0a0a" stroke="white" strokeWidth="12"/>
+                            <circle cx="100" cy="100" r="10" fill="white" opacity="0.4"/>
+                          </svg>
+                    }
+                    {s && (
+                      <div onClick={e=>{ e.stopPropagation(); removeCard(i); }}
+                        style={{ position:"absolute", top:4, right:4, width:20, height:20, borderRadius:5,
+                          background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center",
+                          cursor:"pointer", transition:"background .15s",
+                          boxShadow:"0 2px 6px #000" }}
+                        onMouseEnter={e=>e.currentTarget.style.background=RED}
+                        onMouseLeave={e=>e.currentTarget.style.background="rgba(0,0,0,0.7)"}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                          <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Page nav */}
+          <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            padding:"10px 20px", borderTop:`1px solid rgba(255,255,255,0.05)`, background:SHADOW }}>
+            <div onClick={()=>setActivePage(p=>Math.max(0,p-1))}
+              onMouseEnter={e=>{if(activePage>0)e.currentTarget.style.borderColor=`${RED}88`;}}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"}
+              style={{ width:26, height:26, borderRadius:6, cursor:activePage>0?"pointer":"default",
+                border:"1px solid rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center",
+                opacity:activePage>0?1:0.25, transition:"all .2s" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </div>
+            {pages.map((_,i)=>(
+              <div key={i} onClick={()=>setActivePage(i)}
+                style={{ width:i===activePage?22:7, height:7, borderRadius:4, cursor:"pointer", transition:"all .3s",
+                  background: i===activePage ? RED : "rgba(255,255,255,0.18)" }}/>
+            ))}
+            <div onClick={()=>setActivePage(p=>Math.min(pages.length-1,p+1))}
+              onMouseEnter={e=>{if(activePage<pages.length-1)e.currentTarget.style.borderColor=`${RED}88`;}}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"}
+              style={{ width:26, height:26, borderRadius:6, cursor:activePage<pages.length-1?"pointer":"default",
+                border:"1px solid rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center",
+                opacity:activePage<pages.length-1?1:0.25, transition:"all .2s" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div onClick={addPage}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=RED}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"}
+              style={{ width:26, height:26, borderRadius:6, cursor:"pointer", marginLeft:4,
+                border:"1px dashed rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center",
+                transition:"border-color .2s" }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: analysis OR search */}
+        {showSearch ? (
+          <div style={{ flex:1, display:"flex", flexDirection:"column", background:SHADOW, overflow:"hidden" }}>
+            {/* Search bar */}
+            <div style={{ flexShrink:0, padding:"16px 18px", borderBottom:`1px solid rgba(255,255,255,0.06)` }}>
+            <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:2, marginBottom:10, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <span>SÖK &amp; DRA KORT</span>
+              <div onClick={()=>setShowSearch(false)}
+                onMouseEnter={e=>{e.currentTarget.style.background=RED;e.currentTarget.style.borderColor=RED;}}
+                onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor="rgba(255,255,255,0.15)";}}
+                style={{ width:22, height:22, borderRadius:6, cursor:"pointer", border:"1px solid rgba(255,255,255,0.15)",
+                  display:"flex", alignItems:"center", justifyContent:"center", transition:"all .2s" }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </div>
+            </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <div style={{ flex:1, background:BASE, borderRadius:9, padding:"10px 14px",
+                  border:`1px solid rgba(255,255,255,0.1)`, display:"flex", alignItems:"center", gap:8 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input autoFocus value={query}
+                    onChange={e=>{ setQuery(e.target.value); doSearch(e.target.value); }}
+                    onKeyDown={e=>{ if(e.key==="Enter") doSearch(query); }}
+                    placeholder="t.ex. Charizard, Pikachu..."
+                    style={{ background:"none", border:"none", outline:"none", color:WHITE,
+                      fontFamily:FF_RAJ, fontSize:14, width:"100%", caretColor:RED }}/>
+                </div>
+              </div>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:1, marginTop:8, opacity:0.6 }}>
+                DRA KORT TILL EN TOM PLATS ↙
+              </div>
+            </div>
+            {/* Results grid */}
+            <div style={{ flex:1, overflowY:"auto", scrollbarWidth:"none", padding:"14px 16px" }}>
+              {loading && <div style={{ textAlign:"center", padding:32, fontFamily:FF_STM, fontSize:10, color:MUTED, letterSpacing:2 }}>SÖKER...</div>}
+              {!query && <div style={{ textAlign:"center", padding:32, fontFamily:FF_STM, fontSize:10, color:MUTED, letterSpacing:1 }}>SKRIV FÖR ATT SÖKA</div>}
+              {!loading && query && !results.length && <div style={{ textAlign:"center", padding:32, fontFamily:FF_STM, fontSize:10, color:MUTED }}>INGA RESULTAT</div>}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+                {results.map((c,i) => {
+                  const col = TYPE_COLORS[(i+1) % TYPE_COLORS.length];
+                  return (
+                    <DraggableCard key={i} p={{id: i+1, name: c.name}} c={[c.a||col[0], c.b||col[1], c.acc||col[2]]}
+                      cardData={c}
+                      onDragStart={()=>setDragCard({id: i+1, name: c.name, a: c.a||col[0], b: c.b||col[1], acc: c.acc||col[2], cardData: c})}
+                      onDragEnd={()=>setDragCard(null)}/>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ flex:1, overflowY:"auto", scrollbarWidth:"none", background:SHADOW, display:"flex", flexDirection:"column" }}>
+            <div style={{ padding:"22px 20px", borderBottom:`1px solid rgba(255,255,255,0.05)` }}>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:2, marginBottom:8 }}>TOTALT VÄRDE</div>
+              <div style={{ fontFamily:FF_ORB, fontSize:30, fontWeight:900, color:RED }}>{totalVal.toLocaleString("sv-SE")} kr</div>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:GREEN, marginTop:5, letterSpacing:1 }}>▲ +3,2% DENNA VECKA</div>
+            </div>
+            <div style={{ padding:"18px 20px", borderBottom:`1px solid rgba(255,255,255,0.05)` }}>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:2, marginBottom:14 }}>VÄRDEUTVECKLING</div>
+              <div style={{ height:110 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={[
+                    {m:"OKT",v:0},{m:"NOV",v:filled*20},{m:"DEC",v:filled*45},
+                    {m:"JAN",v:filled*70},{m:"FEB",v:filled*95},{m:"MAR",v:filled*108},{m:"APR",v:totalVal}
+                  ]} margin={{top:4,right:2,bottom:0,left:0}}>
+                    <defs>
+                      <linearGradient id="gBV" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={RED} stopOpacity={0.4}/>
+                        <stop offset="100%" stopColor={RED} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="m" tick={{fontSize:9,fill:MUTED,fontFamily:"Share Tech Mono"}} axisLine={false} tickLine={false}/>
+                    <Tooltip contentStyle={{background:"#111",border:`1px solid ${RED}44`,borderRadius:8,fontFamily:"Orbitron,monospace",fontSize:10}}
+                      formatter={v=>[v+" kr","Värde"]} labelStyle={{color:MUTED}}/>
+                    <Area type="monotone" dataKey="v" stroke={RED} strokeWidth={2} fill="url(#gBV)" dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div style={{ padding:"18px 20px", borderBottom:`1px solid rgba(255,255,255,0.05)` }}>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, letterSpacing:2, marginBottom:12 }}>STATISTIK</div>
+              {[
+                {l:"Kort totalt",  v:filled},
+                {l:"Sidor",        v:pages.length},
+                {l:"Snitt / kort", v:filled?Math.round(totalVal/filled)+" kr":"—"},
+                {l:"Mest värd",    v:filled?"Okänd":"—"},
+              ].map(r=>(
+                <div key={r.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                  padding:"8px 0",borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
+                  <span style={{fontFamily:FF_RAJ,fontSize:13,color:MUTED}}>{r.l}</span>
+                  <span style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:WHITE}}>{r.v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding:"18px 20px", borderBottom:`1px solid rgba(255,255,255,0.05)` }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                <span style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2}}>FYLLNADSGRAD</span>
+                <span style={{fontFamily:FF_ORB,fontSize:9,color:WHITE}}>{filled}/{pages.length*SLOTS}</span>
+              </div>
+              <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:3,width:`${Math.round(filled/(pages.length*SLOTS)*100)||0}%`,
+                  background:`linear-gradient(90deg,${RED},${PINK})`,transition:"width .4s"}}/>
+              </div>
+            </div>
+            <div style={{ padding:"18px 20px", flex:1 }}>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2,marginBottom:14}}>TOPPINNEHAV</div>
+              {allCards.length===0
+                ? <div style={{textAlign:"center",padding:"24px 0",fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1}}>INGA KORT ÄNNU</div>
+                : allCards.slice(0,6).map((s,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",
+                    borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
+                    <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,width:14,textAlign:"center"}}>{i+1}</div>
+                    <div style={{width:36,height:50,borderRadius:6,flexShrink:0,
+                      background:`linear-gradient(145deg,${s.a},${s.b})`,
+                      border:`1px solid rgba(255,255,255,0.1)`,
+                      display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${s.pid}.png`}
+                        alt="" style={{width:"90%",imageRendering:"pixelated"}}/>
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontFamily:FF_STM,fontSize:8,color:MUTED,marginBottom:2}}>#{s.pid}</div>
+                      <div style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:WHITE}}>120 kr</div>
+                      <div style={{fontFamily:FF_STM,fontSize:8,color:GREEN}}>▲ +2,1%</div>
+                    </div>
+                    <div style={{width:40,height:3,borderRadius:2,background:`${s.acc||RED}55`,alignSelf:"center"}}>
+                      <div style={{height:"100%",width:"70%",borderRadius:2,background:s.acc||RED}}/>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const DEFAULT_BINDERS = [
+  { name:"Huvud-binder",        cards:0, val:"0 kr", updated:"Idag",        pages:[Array(25).fill(null)], a:"#7c2d12", b:"#3b0a00", acc:"#fb923c" },
+  { name:"Graderade kort",      cards:0, val:"0 kr", updated:"3 dagar sen", pages:[Array(25).fill(null)], a:"#1a1a3e", b:"#0d0d22", acc:"#f59e0b" },
+  { name:"Japanska sällsynter", cards:0, val:"0 kr", updated:"1 vecka sen", pages:[Array(25).fill(null)], a:"#064e3b", b:"#022c1f", acc:"#34d399" },
+  { name:"Alt Art samling",     cards:0, val:"0 kr", updated:"2 v. sen",    pages:[Array(25).fill(null)], a:"#3b0764", b:"#1e0338", acc:"#c084fc" },
+];
+
+function PortfolioPage({user,onCardClick}) {
+  const isMaster = user && MASTER_USERS.includes(user.email);
+  const isAdmin  = user && ADMIN_USERNAMES.includes(user?.username?.toLowerCase());
+  const canMaster = isMaster || isAdmin; // admins get master perks
+  const [activeBinder, setActiveBinder] = useState(null);
+  const [binders,      setBinders]      = useState(null);
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [newName,      setNewName]      = useState("");
+  const [newCover,     setNewCover]     = useState(0);
+  const storageKey = user ? `pf-binders-v5-${user.email}` : "pf-binders-v5";
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await window.storage.get(storageKey);
+        if (res && res.value) { setBinders(JSON.parse(res.value)); return; }
+      } catch(_) {}
+      setBinders(DEFAULT_BINDERS);
+    }
+    load();
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (binders === null) return;
+    async function save() {
+      try { await window.storage.set(storageKey, JSON.stringify(binders)); } catch(_) {}
+    }
+    save();
+  }, [binders]);
+
+  function createBinder() {
+    if (!newName.trim()) return;
+    if (!canMaster && binders.length >= FREE_LIMITS.binders) return;
+    const cover = COVER_PRESETS[newCover];
+    setBinders(prev => [...prev, { name:newName.trim(), cards:0, val:"0 kr", updated:"Precis nu", pages:[Array(25).fill(null)], a:cover.a, b:cover.b, acc:cover.acc }]);
+    setShowCreate(false); setNewName(""); setNewCover(0);
+  }
+
+  function deleteBinder(i) {
+    setBinders(prev => prev.filter((_,j) => j !== i));
+    if (activeBinder === i) setActiveBinder(null);
+  }
+
+  function updateBinder(i, updated) {
+    setBinders(prev => prev.map((b,j) => j===i ? updated : b));
+  }
+
+  if (binders === null) return (
+    <div style={{ position:"absolute",inset:0,display:"flex", alignItems:"center", justifyContent:"center", background:BASE }}>
+      <div style={{ fontFamily:"Share Tech Mono,monospace", fontSize:12, color:MUTED, letterSpacing:2 }}>LADDAR...</div>
+    </div>
+  );
+
+  if (activeBinder !== null && binders[activeBinder]) return (
+    <div style={{ position:"absolute",inset:0,background:BASE }}>
+      <BinderView binder={binders[activeBinder]} onBack={()=>setActiveBinder(null)} onUpdate={u=>updateBinder(activeBinder,u)} onCardClick={onCardClick}/>
+    </div>
+  );
+
+  return (
+    <div style={{ position:"absolute",inset:0,background:BASE,overflowY:"auto",scrollbarWidth:"none",padding:"40px 48px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:36 }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:6 }}>
+              <div style={{ fontFamily:"Orbitron,monospace", fontSize:24, fontWeight:900, color:WHITE, letterSpacing:-0.5 }}>Min portfolio</div>
+              <div style={{ fontFamily:FF_STM, fontSize:9, letterSpacing:1, padding:"3px 9px", borderRadius:6,
+                background: canMaster?`${RED}22`:"rgba(255,255,255,0.07)",
+                color: canMaster?RED:MUTED, border:`1px solid ${canMaster?RED+"44":"rgba(255,255,255,0.1)"}`}}>
+                {canMaster?"✦ MASTER":"GRATIS"}
+              </div>
+            </div>
+            <div style={{ fontFamily:"Share Tech Mono,monospace", fontSize:11, color:MUTED, letterSpacing:1 }}>
+              {binders.reduce((a,b)=>a+(b.cards||0),0)} KORT · {binders.length}/{canMaster?"∞":FREE_LIMITS.binders} BINDERS
+            </div>
+            {!canMaster && (
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:"#f59e0b", letterSpacing:1, marginTop:4 }}>
+                {FREE_LIMITS.binders - binders.length} binders kvar · Uppgradera till Master för obegränsat
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:20 }}>
+          {binders.map((b,i) => (
+            <div key={i} style={{ position:"relative" }}>
+              <div onClick={()=>deleteBinder(i)} style={{ position:"absolute", top:-10, right:-10, zIndex:10,
+                width:26, height:26, borderRadius:"50%", background:"#1a1a1a",
+                border:`1px solid rgba(255,255,255,0.15)`, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 2px 8px #000`, transition:"all .15s" }}
+                onMouseEnter={e=>{ e.currentTarget.style.background=RED; e.currentTarget.style.borderColor=RED; }}
+                onMouseLeave={e=>{ e.currentTarget.style.background="#1a1a1a"; e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"; }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </div>
+              <BinderCard b={b} onClick={()=>setActiveBinder(i)}/>
+            </div>
+          ))}
+          {(!canMaster && binders.length >= FREE_LIMITS.binders) ? (
+            <div style={{ borderRadius:18, border:`1.5px dashed ${RED}44`, background:`${RED}06`,
+              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+              padding:40, gap:10, minHeight:200 }}>
+              <div style={{ fontFamily:FF_ORB, fontSize:12, fontWeight:700, color:RED, letterSpacing:0.5, textAlign:"center" }}>BINDERGRÄNS NÅDD</div>
+              <div style={{ fontFamily:FF_RAJ, fontSize:13, color:MUTED, textAlign:"center" }}>Uppgradera till Master för obegränsade binders</div>
+              <div onClick={()=>{}} style={{ marginTop:6, padding:"8px 18px", borderRadius:9, background:RED,
+                color:"#fff", fontFamily:FF_ORB, fontSize:11, fontWeight:700, cursor:"pointer",
+                boxShadow:`0 0 16px ${RED}44` }}>UPPGRADERA →</div>
+            </div>
+          ) : (
+          <div onClick={()=>setShowCreate(true)} style={{ borderRadius:18, cursor:"pointer",
+            border:`1.5px dashed rgba(255,255,255,0.12)`, background:"transparent",
+            display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+            padding:40, gap:14, minHeight:200, transition:"all .25s" }}
+            onMouseEnter={e=>{ e.currentTarget.style.borderColor=`${RED}66`; e.currentTarget.style.background=`${RED}06`; }}
+            onMouseLeave={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,0.12)"; e.currentTarget.style.background="transparent"; }}>
+            <div style={{ width:44, height:44, borderRadius:"50%", border:`1.5px solid rgba(255,255,255,0.15)`,
+              display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div style={{ fontFamily:"Orbitron,monospace", fontSize:13, fontWeight:700, color:MUTED, letterSpacing:0.5 }}>SKAPA NY BINDER</div>
+          </div>
+          )}
+        </div>
+
+      {showCreate && (
+        <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(0,0,0,0.8)", backdropFilter:"blur(8px)" }}
+          onClick={()=>{ setShowCreate(false); setNewName(""); setNewCover(0); }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:"#111", borderRadius:20, padding:"32px 36px",
+            border:`1px solid rgba(255,255,255,0.1)`, boxShadow:`0 24px 80px #000`, width:440 }}>
+            <div style={{ fontFamily:FF_ORB, fontSize:18, fontWeight:900, color:WHITE, marginBottom:6 }}>Ny binder</div>
+            <div style={{ fontFamily:FF_STM, fontSize:10, color:MUTED, letterSpacing:1, marginBottom:24 }}>VÄLJ OMSLAG & NAMN</div>
+
+            {/* Cover preview */}
+            <div style={{ height:110, borderRadius:12, marginBottom:16, overflow:"hidden", position:"relative",
+              background:`linear-gradient(145deg,${COVER_PRESETS[newCover].a},${COVER_PRESETS[newCover].b})`,
+              border:`1px solid ${COVER_PRESETS[newCover].acc}44`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg viewBox="0 0 200 200" width="80" height="80" style={{opacity:0.15}}>
+                <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={COVER_PRESETS[newCover].acc}/>
+                <circle cx="100" cy="100" r="90" fill="none" stroke={COVER_PRESETS[newCover].acc} strokeWidth="8"/>
+                <rect x="10" y="93" width="180" height="14" fill={COVER_PRESETS[newCover].acc}/>
+                <circle cx="100" cy="100" r="22" fill="#0a0a0a" stroke={COVER_PRESETS[newCover].acc} strokeWidth="8"/>
+                <circle cx="100" cy="100" r="10" fill={COVER_PRESETS[newCover].acc} opacity="0.5"/>
+              </svg>
+              <div style={{ position:"absolute", bottom:8, left:0, right:0, textAlign:"center",
+                fontFamily:FF_ORB, fontSize:12, fontWeight:900, color:"rgba(255,255,255,0.7)", letterSpacing:0.5 }}>
+                {newName||"Namn på binder"}
+              </div>
+            </div>
+
+            {/* Color swatches */}
+            <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+              {COVER_PRESETS.map((p,i)=>(
+                <div key={i} onClick={()=>setNewCover(i)}
+                  style={{ width:32, height:32, borderRadius:8, cursor:"pointer",
+                    background:`linear-gradient(145deg,${p.a},${p.b})`,
+                    border:`2px solid ${i===newCover?p.acc:"transparent"}`,
+                    boxShadow:i===newCover?`0 0 12px ${p.acc}88`:"none",
+                    transition:"all .2s" }}/>
+              ))}
+            </div>
+
+            {/* Name input */}
+            <div style={{ background:"#0a0a0a", borderRadius:10, padding:"12px 16px", border:`1px solid rgba(255,255,255,0.1)`, marginBottom:20 }}>
+              <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter") createBinder(); }}
+                placeholder="t.ex. Mina favoriter..."
+                style={{ background:"none", border:"none", outline:"none", color:WHITE,
+                  fontFamily:FF_RAJ, fontSize:15, width:"100%", caretColor:RED }}/>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={()=>{ setShowCreate(false); setNewName(""); setNewCover(0); }}
+                style={{ flex:1, padding:"11px 0", borderRadius:10, background:"transparent", color:MUTED,
+                  border:`1px solid rgba(255,255,255,0.1)`, fontFamily:FF_ORB, fontSize:12, fontWeight:700, cursor:"pointer" }}>AVBRYT</button>
+              <button onClick={createBinder} disabled={!newName.trim()}
+                style={{ flex:1, padding:"11px 0", borderRadius:10, border:"none",
+                  background:newName.trim()?RED:"#333", color:newName.trim()?"#fff":MUTED,
+                  fontFamily:FF_ORB, fontSize:12, fontWeight:700,
+                  cursor:newName.trim()?"pointer":"default",
+                  boxShadow:newName.trim()?`0 0 16px ${RED}44`:"none", transition:"all .2s" }}>SKAPA</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ── USER MENU ── */
+function UserMenu({ user, onProfile, onPortfolio, onWishlist, onSettings, onAdmin, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const isAdmin = ADMIN_USERNAMES.includes(user?.username?.toLowerCase());
+
+  useEffect(() => {
+    function h(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    if (open) document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+
+  const items = [
+    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
+      label:"Min profil",    action: onProfile },
+    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+      label:"Min portfölj",  action: onPortfolio },
+    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+      label:"Bevakningslista", action: onWishlist },
+    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      label:"Inställningar", action: onSettings },
+    ...(isAdmin ? [{ icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+      label:"Admin", action: onAdmin, red:true }] : []),
+  ];
+
+  return (
+    <div ref={ref} style={{ position:"relative" }}>
+      <div onClick={()=>setOpen(v=>!v)} style={{ display:"flex", alignItems:"center", gap:8,
+        padding:"6px 14px", background:SHADOW, borderRadius:10, cursor:"pointer",
+        border:`1px solid ${open?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.08)"}`,
+        boxShadow:`3px 3px 8px #000,-3px -3px 8px ${RAISED}`, transition:"all .2s" }}>
+        <div style={{ width:28, height:28, borderRadius:"50%", background:RED,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontFamily:FF_ORB, fontSize:11, fontWeight:900, color:"#fff",
+          boxShadow:`0 0 10px ${RED}44` }}>
+          {user.username[0].toUpperCase()}
+        </div>
+        <span style={{ fontFamily:FF_STM, fontSize:12, color:WHITE, letterSpacing:0.5 }}>{user.username}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"
+          style={{ transform:open?"rotate(180deg)":"none", transition:"transform .2s" }}>
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+
+      {open && (
+        <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, minWidth:200,
+          background:"#111", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)",
+          boxShadow:"0 16px 48px #000", overflow:"hidden", zIndex:300 }}>
+          {/* Header */}
+          <div style={{ padding:"14px 16px", borderBottom:"1px solid rgba(255,255,255,0.07)",
+            display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:36, height:36, borderRadius:"50%", background:RED,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontFamily:FF_ORB, fontSize:14, fontWeight:900, color:"#fff",
+              boxShadow:`0 0 12px ${RED}44` }}>
+              {user.username[0].toUpperCase()}
+            </div>
+            <div>
+              <div style={{ fontFamily:FF_ORB, fontSize:12, fontWeight:700, color:WHITE }}>{user.username}</div>
+              <div style={{ fontFamily:FF_STM, fontSize:9, color:MUTED, marginTop:2 }}>{user.email}</div>
+              {isAdmin && <div style={{ fontFamily:FF_STM, fontSize:8, color:RED, letterSpacing:1, marginTop:2 }}>⚡ ADMIN</div>}
+            </div>
+          </div>
+          {/* Items */}
+          {items.map((item,i)=>(
+            <div key={i} onClick={()=>{ item.action(); setOpen(false); }}
+              style={{ padding:"11px 16px", display:"flex", alignItems:"center", gap:12,
+                cursor:"pointer", transition:"background .15s",
+                borderBottom:"1px solid rgba(255,255,255,0.04)" }}
+              onMouseEnter={e=>e.currentTarget.style.background=`${item.red?RED:RED}10`}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+              <span style={{color:item.red?RED:MUTED,display:"flex",alignItems:"center"}}>{item.icon}</span>
+              <span style={{ fontFamily:FF_RAJ, fontSize:14, fontWeight:600,
+                color: item.red?RED:WHITE }}>{item.label}</span>
+            </div>
+          ))}
+          {/* Logout */}
+          <div onClick={()=>{ onLogout(); setOpen(false); }}
+            style={{ padding:"11px 16px", display:"flex", alignItems:"center", gap:12,
+              cursor:"pointer", transition:"all .15s" }}
+            onMouseEnter={e=>{ e.currentTarget.style.background=`${RED}10`; e.currentTarget.style.color=RED; }}
+            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; }}>
+            <span style={{color:MUTED,display:"flex",alignItems:"center"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+            <span style={{ fontFamily:FF_RAJ, fontSize:14, fontWeight:600, color:MUTED }}>Logga ut</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ── WISHLIST PAGE ── */
+function WishlistPage({user,wishlist,onToggleWish,onCardClick,onBack}){
+  const items = EXPLORE_CARDS.filter(c=>wishlist.includes(c.name));
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,overflowY:"auto",scrollbarWidth:"none",padding:"40px 48px"}}>
+      <BackBtn onClick={onBack}/>
+      <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:WHITE,marginBottom:4}}>Bevakningslista</div>
+      <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:1,marginBottom:32}}>{items.length} KORT BEVAKADE</div>
+      {items.length===0
+        ? <div style={{textAlign:"center",padding:"80px 0",fontFamily:FF_STM,fontSize:11,color:MUTED,letterSpacing:1}}>
+            INGA BEVAKADE KORT — LÄGG TILL FRÅN UTFORSKA
+          </div>
+        : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:16}}>
+            {items.map((c,i)=>(
+              <div key={i} onClick={()=>onCardClick&&onCardClick(c)}
+                style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:SHADOW,
+                  border:`1px solid rgba(255,255,255,0.07)`,transition:"all .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-3px)"}
+                onMouseLeave={e=>e.currentTarget.style.transform="none"}>
+                <div style={{height:130,background:`linear-gradient(155deg,${c.a},${c.b})`,
+                  display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+                  <div style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:WHITE,textAlign:"center",padding:"0 10px"}}>{c.name}</div>
+                  <div onClick={e=>{e.stopPropagation();onToggleWish(c.name);}}
+                    style={{position:"absolute",top:8,right:8,cursor:"pointer",fontSize:16}}>⭐</div>
+                </div>
+                <div style={{padding:"10px 14px"}}>
+                  <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1,marginBottom:4}}>{c.set}</div>
+                  <div style={{fontFamily:FF_ORB,fontSize:14,fontWeight:900,color:WHITE}}>{c.val}</div>
+                  <div style={{fontFamily:FF_STM,fontSize:9,color:c.up?GREEN:PINK,marginTop:2}}>{c.up?"▲":"▼"} {c.chg}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+      }
+    </div>
+  );
+}
+
+function MasterBadge(){
+  return <span style={{fontFamily:FF_STM,fontSize:8,letterSpacing:1,padding:"2px 7px",borderRadius:5,
+    background:`${RED}22`,color:RED,border:`1px solid ${RED}44`,marginLeft:8}}>MASTER</span>;
+}
+
+function LockedRow({label,sub}){
+  return(
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px",
+      borderBottom:"1px solid rgba(255,255,255,0.05)",opacity:0.5}}>
+      <div>
+        <div style={{display:"flex",alignItems:"center",fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>
+          {label}<MasterBadge/>
+        </div>
+        <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>{sub}</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── SETTINGS PAGE ── */
+function SettingsPage({user,onBack,onLogout}){
+  const isAdmin  = ADMIN_USERNAMES.includes(user?.username?.toLowerCase());
+  const isMaster = isAdmin || MASTER_USERS.includes(user?.email);
+  const [notif,       setNotif]       = useState(true);
+  const [priceAlerts, setPriceAlerts] = useState(false);
+  const [gradeAlerts, setGradeAlerts] = useState(false);
+
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,overflowY:"auto",scrollbarWidth:"none",padding:"40px 52px"}}>
+      <BackBtn onClick={onBack}/>
+      <div style={{maxWidth:600,margin:"0 auto"}}>
+        <div style={{marginBottom:36}}>
+          <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:WHITE,marginBottom:4}}>Inställningar</div>
+          <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:2}}>KONTO & NOTIFIKATIONER</div>
+        </div>
+
+        {/* Account */}
+        <div style={{background:SHADOW,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)",marginBottom:16}}>
+          <div style={{padding:"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2}}>KONTO</div>
+          </div>
+          {[
+            {l:"Användarnamn",v:user.username},
+            {l:"E-post",      v:user.email},
+            {l:"Medlemskap",  v:isMaster?"✦ MASTER":"Gratis"},
+          ].map((r,i)=>(
+            <div key={r.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"16px 22px",borderBottom:i<2?"1px solid rgba(255,255,255,0.05)":"none"}}>
+              <span style={{fontFamily:FF_RAJ,fontSize:15,color:MUTED,fontWeight:500}}>{r.l}</span>
+              <span style={{fontFamily:FF_ORB,fontSize:12,fontWeight:700,
+                color:r.l==="Medlemskap"&&isMaster?RED:WHITE}}>{r.v}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Notifications */}
+        <div style={{background:SHADOW,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)",marginBottom:16}}>
+          <div style={{padding:"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2}}>NOTIFIKATIONER</div>
+          </div>
+
+          {/* Always available */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div>
+              <div style={{fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>Aktivera notifikationer</div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>Systemmeddelanden och nyheter</div>
+            </div>
+            <div onClick={()=>setNotif(v=>!v)} style={{width:46,height:26,borderRadius:13,cursor:"pointer",
+              background:notif?RED:"rgba(255,255,255,0.1)",transition:"background .25s",position:"relative",flexShrink:0}}>
+              <div style={{position:"absolute",top:3,left:notif?23:3,width:20,height:20,borderRadius:"50%",
+                background:"white",transition:"left .25s",boxShadow:`0 2px 6px rgba(0,0,0,0.5)`}}/>
+            </div>
+          </div>
+
+          {/* Free: ungraded only */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div>
+              <div style={{fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>Prisvarningar – Ungraded</div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>Notifiering när bevakade okvalificerade kort ändrar pris</div>
+            </div>
+            <div onClick={()=>setPriceAlerts(v=>!v)} style={{width:46,height:26,borderRadius:13,cursor:"pointer",
+              background:priceAlerts?RED:"rgba(255,255,255,0.1)",transition:"background .25s",position:"relative",flexShrink:0}}>
+              <div style={{position:"absolute",top:3,left:priceAlerts?23:3,width:20,height:20,borderRadius:"50%",
+                background:"white",transition:"left .25s",boxShadow:`0 2px 6px rgba(0,0,0,0.5)`}}/>
+            </div>
+          </div>
+
+          {/* Master only */}
+          {isMaster ? (
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px"}}>
+              <div>
+                <div style={{display:"flex",alignItems:"center",fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>
+                  Prisvarningar – Alla grader<MasterBadge/>
+                </div>
+                <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>PSA, BGS, CGC och alla grader för bevakade kort</div>
+              </div>
+              <div onClick={()=>setGradeAlerts(v=>!v)} style={{width:46,height:26,borderRadius:13,cursor:"pointer",
+                background:gradeAlerts?RED:"rgba(255,255,255,0.1)",transition:"background .25s",position:"relative",flexShrink:0}}>
+                <div style={{position:"absolute",top:3,left:gradeAlerts?23:3,width:20,height:20,borderRadius:"50%",
+                  background:"white",transition:"left .25s",boxShadow:`0 2px 6px rgba(0,0,0,0.5)`}}/>
+              </div>
+            </div>
+          ) : (
+            <LockedRow label="Prisvarningar – Alla grader" sub="PSA, BGS, CGC och alla grader för bevakade kort"/>
+          )}
+        </div>
+
+        {/* Grade charts info */}
+        <div style={{background:SHADOW,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)",marginBottom:16}}>
+          <div style={{padding:"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2}}>KORTANALYS</div>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div>
+              <div style={{fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>Prisgraf – Ungraded</div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>Tillgänglig för alla</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          {isMaster ? (
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px"}}>
+              <div>
+                <div style={{display:"flex",alignItems:"center",fontFamily:FF_RAJ,fontSize:15,color:WHITE,fontWeight:600,marginBottom:2}}>
+                  Prisgrafer per grad<MasterBadge/>
+                </div>
+                <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5}}>PSA 6–10, BGS 9.5, CGC 10 — separata grafer</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+          ) : (
+            <LockedRow label="Prisgrafer per grad" sub="PSA 6–10, BGS 9.5, CGC 10 — separata grafer"/>
+          )}
+        </div>
+
+        {/* Danger */}
+        <div style={{background:"rgba(232,25,44,0.04)",borderRadius:16,overflow:"hidden",border:`1px solid ${RED}22`}}>
+          <div style={{padding:"14px 22px",borderBottom:`1px solid ${RED}15`}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:RED,letterSpacing:2}}>FARLIG ZON</div>
+          </div>
+          <div onClick={onLogout}
+            style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"16px 22px",cursor:"pointer",transition:"background .15s"}}
+            onMouseEnter={e=>e.currentTarget.style.background=`${RED}08`}
+            onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            <div>
+              <div style={{fontFamily:FF_RAJ,fontSize:15,color:RED,fontWeight:600}}>Logga ut</div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:0.5,marginTop:2}}>Avslutar din nuvarande session</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+/* ── ADMIN PAGE ── */
+function AdminPage({user,onBack}){
+  const [users] = useState([
+    {username:"goku",email:"goku@pokefolio.se",plan:"MASTER",cards:142,joined:"2026-01-15"},
+    {username:"ash",email:"ash@gmail.com",plan:"GRATIS",cards:12,joined:"2026-03-02"},
+    {username:"misty",email:"misty@gmail.com",plan:"GRATIS",cards:38,joined:"2026-04-11"},
+    {username:"brock",email:"brock@gmail.com",plan:"MASTER",cards:87,joined:"2026-02-20"},
+  ]);
+  const totalCards = users.reduce((a,u)=>a+u.cards,0);
+  const masters = users.filter(u=>u.plan==="MASTER").length;
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,overflowY:"auto",scrollbarWidth:"none",padding:"40px 48px"}}>
+      <BackBtn onClick={onBack}/>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
+        <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:WHITE}}>Admin</div>
+        <div style={{fontFamily:FF_STM,fontSize:9,color:RED,background:`${RED}18`,border:`1px solid ${RED}44`,
+          borderRadius:6,padding:"3px 9px",letterSpacing:1}}>⚡ ADMIN</div>
+      </div>
+      <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:1,marginBottom:32}}>POKEFOLIO DASHBOARD</div>
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:28}}>
+        {[
+          {l:"Användare",v:users.length,c:WHITE},
+          {l:"Master-members",v:masters,c:RED},
+          {l:"Gratis-users",v:users.length-masters,c:MUTED},
+          {l:"Kort totalt",v:totalCards,c:GREEN},
+        ].map(s=>(
+          <div key={s.l} style={{background:SHADOW,borderRadius:12,padding:"16px 18px",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1.5,marginBottom:8}}>{s.l.toUpperCase()}</div>
+            <div style={{fontFamily:FF_ORB,fontSize:28,fontWeight:900,color:s.c}}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* User table */}
+      <div style={{background:SHADOW,borderRadius:14,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1.5fr 100px 80px 100px",
+          padding:"12px 20px",borderBottom:"1px solid rgba(255,255,255,0.07)",
+          fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1.5}}>
+          {["ANVÄNDARE","E-POST","PLAN","KORT","GICK MED"].map(h=><span key={h}>{h}</span>)}
+        </div>
+        {users.map((u,i)=>(
+          <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1.5fr 100px 80px 100px",
+            padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.04)",
+            transition:"background .15s"}}
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.02)"}
+            onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:RED,flexShrink:0,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontFamily:FF_ORB,fontSize:11,fontWeight:900,color:"#fff"}}>
+                {u.username[0].toUpperCase()}
+              </div>
+              <span style={{fontFamily:FF_ORB,fontSize:12,fontWeight:700,color:WHITE}}>{u.username}</span>
+            </div>
+            <span style={{fontFamily:FF_RAJ,fontSize:13,color:MUTED,alignSelf:"center"}}>{u.email}</span>
+            <div style={{alignSelf:"center"}}>
+              <span style={{fontFamily:FF_STM,fontSize:9,letterSpacing:1,padding:"3px 8px",borderRadius:5,
+                background:u.plan==="MASTER"?`${RED}22`:"rgba(255,255,255,0.06)",
+                color:u.plan==="MASTER"?RED:MUTED,border:`1px solid ${u.plan==="MASTER"?RED+"44":"rgba(255,255,255,0.08)"}`}}>
+                {u.plan}
+              </span>
+            </div>
+            <span style={{fontFamily:FF_ORB,fontSize:12,fontWeight:700,color:WHITE,alignSelf:"center"}}>{u.cards}</span>
+            <span style={{fontFamily:FF_STM,fontSize:9,color:MUTED,alignSelf:"center"}}>{u.joined}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+function ProfilePage({user,onBack}){
+  const isAdmin  = ADMIN_USERNAMES.includes(user?.username?.toLowerCase());
+  const isMaster = isAdmin || MASTER_USERS.includes(user?.email);
+
+  return(
+    <div style={{position:"absolute",inset:0,overflowY:"auto",scrollbarWidth:"none",background:BASE}}>
+      {/* Header banner */}
+      <div style={{height:140,background:`linear-gradient(135deg,#1a0505,#0d0d1a,#051a0d)`,
+        position:"relative",overflow:"hidden",flexShrink:0}}>
+        {/* Subtle pokeball watermark */}
+        <svg viewBox="0 0 200 200" width="220" height="220"
+          style={{position:"absolute",right:-40,top:-40,opacity:0.05}}>
+          <circle cx="100" cy="100" r="90" fill="#0a0a0a" stroke="white" strokeWidth="12"/>
+          <path d="M10,100 A90,90 0 0,1 190,100 Z" fill="rgba(255,255,255,0.15)"/>
+          <rect x="10" y="92" width="180" height="16" fill="#0a0a0a"/>
+          <line x1="10" y1="92" x2="190" y2="92" stroke="white" strokeWidth="10"/>
+          <line x1="10" y1="108" x2="190" y2="108" stroke="white" strokeWidth="10"/>
+          <circle cx="100" cy="100" r="26" fill="#0a0a0a" stroke="white" strokeWidth="12"/>
+          <circle cx="100" cy="100" r="10" fill="white" opacity="0.4"/>
+        </svg>
+        <BackBtn onClick={onBack}/>
+      </div>
+
+      <div style={{maxWidth:680,margin:"0 auto",padding:"0 32px 48px",position:"relative"}}>
+        {/* Avatar — absolutely positioned to overlap banner */}
+        <div style={{position:"absolute",top:-44,left:32,
+          width:88,height:88,borderRadius:"50%",
+          background:`linear-gradient(145deg,${RED},#8b0000)`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontFamily:FF_ORB,fontSize:34,fontWeight:900,color:"#fff",
+          border:`3px solid ${BASE}`,boxShadow:`0 0 30px ${RED}66`,zIndex:10}}>
+          {user?.username?.[0]?.toUpperCase()||"?"}
+        </div>
+
+        {/* Name row — padded to clear avatar */}
+        <div style={{paddingTop:56,paddingLeft:4,marginBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+              <div style={{fontFamily:FF_ORB,fontSize:20,fontWeight:900,color:WHITE}}>{user?.username}</div>
+              {isAdmin && (
+                <div style={{padding:"2px 10px",borderRadius:100,background:`${RED}22`,
+                  border:`1px solid ${RED}44`,fontFamily:FF_STM,fontSize:9,color:RED,letterSpacing:1}}>
+                  ⚡ ADMIN
+                </div>
+              )}
+              {isMaster && !isAdmin && (
+                <div style={{padding:"2px 10px",borderRadius:100,background:`${RED}22`,
+                  border:`1px solid ${RED}44`,fontFamily:FF_STM,fontSize:9,color:RED,letterSpacing:1}}>
+                  ✦ MASTER
+                </div>
+              )}
+            </div>
+            <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:1}}>{user?.email}</div>
+          </div>
+          <div>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1,marginBottom:4}}>PLAN</div>
+            <div style={{fontFamily:FF_ORB,fontSize:14,fontWeight:900,color:isMaster?RED:MUTED}}>
+              {isMaster?"MASTER":"GRATIS"}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:20}}>
+          {[
+            {l:"Binders",  v:"—", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>},
+            {l:"Kort",     v:"—", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>},
+            {l:"Bevakade", v:"—", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>},
+          ].map((s,i)=>(
+            <div key={i} style={{background:SHADOW,borderRadius:14,padding:"18px 20px",
+              border:"1px solid rgba(255,255,255,0.06)",
+              display:"flex",alignItems:"center",gap:14}}>
+              <div style={{width:38,height:38,borderRadius:10,background:`${RED}12`,
+                display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                {s.icon}
+              </div>
+              <div>
+                <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:WHITE,marginBottom:2}}>{s.v}</div>
+                <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1.5}}>{s.l.toUpperCase()}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Account details */}
+        <div style={{background:SHADOW,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)",marginBottom:16}}>
+          <div style={{padding:"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2}}>KONTOINFORMATION</div>
+          </div>
+          {[
+            {l:"Användarnamn", v:user?.username},
+            {l:"E-post",       v:user?.email},
+            {l:"Membre sedan", v:"Maj 2026"},
+            {l:"Kontotyp",     v:isMaster?"Master":"Gratis"},
+          ].map((r,i,arr)=>(
+            <div key={r.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"14px 22px",borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
+              <span style={{fontFamily:FF_RAJ,fontSize:14,color:MUTED,fontWeight:500}}>{r.l}</span>
+              <span style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,
+                color:r.l==="Kontotyp"&&isMaster?RED:WHITE}}>{r.v}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Upgrade CTA for free users */}
+        {!isMaster && (
+          <div style={{background:`linear-gradient(135deg,#1a0505,#0d0505)`,borderRadius:16,
+            padding:"24px 28px",border:`1px solid ${RED}33`,
+            display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
+            <div>
+              <div style={{fontFamily:FF_ORB,fontSize:14,fontWeight:900,color:WHITE,marginBottom:6}}>
+                Uppgradera till <span style={{color:RED}}>Master</span>
+              </div>
+              <div style={{fontFamily:FF_RAJ,fontSize:14,color:MUTED}}>
+                Obegränsade binders, live-priser och gradanalys för 50 kr/mån.
+              </div>
+            </div>
+            <div style={{padding:"10px 20px",borderRadius:10,background:RED,
+              fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:"#fff",
+              cursor:"pointer",flexShrink:0,boxShadow:`0 0 20px ${RED}44`,
+              whiteSpace:"nowrap"}}>
+              UPPGRADERA →
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── AUTH MODAL ── */
+function AuthModal({mode,onClose,onSuccess,onSwitch}){
+  const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
+  const [password,setPassword]=useState("");
+  const [err,setErr]=useState("");
+
+  async function submit(){
+    setErr("");
+    if(!email||!password){setErr("Fyll i alla fält.");return;}
+    if(mode==="signup"){
+      if(!username){setErr("Ange ett användarnamn.");return;}
+      const existing=await window.storage.get(`pf-user-${email}`).catch(()=>null);
+      if(existing?.value){setErr("E-postadressen används redan.");return;}
+      await window.storage.set(`pf-user-${email}`,JSON.stringify({email,username,password:btoa(password)}));
+      const sess={email,username};
+      await window.storage.set("pf-session",JSON.stringify(sess));
+      onSuccess(sess);
+    } else {
+      let stored=null;
+      try{const r=await window.storage.get(`pf-user-${email}`);if(r?.value)stored=JSON.parse(r.value);}catch(_){}
+      if(!stored||stored.password!==btoa(password)){setErr("Fel e-post eller lösenord.");return;}
+      const sess={email,username:stored.username};
+      await window.storage.set("pf-session",JSON.stringify(sess));
+      onSuccess(sess);
+    }
+  }
+
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",
+      justifyContent:"center",background:"rgba(0,0,0,0.88)",backdropFilter:"blur(16px)"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#111",borderRadius:24,width:"min(420px,92vw)",
+        padding:36,border:"1px solid rgba(255,255,255,0.1)",boxShadow:"0 40px 100px #000"}}>
+        <div style={{fontFamily:FF_ORB,fontSize:20,fontWeight:900,color:WHITE,marginBottom:6}}>
+          {mode==="signup"?"Skapa konto":"Logga in"}
+        </div>
+        <div style={{fontFamily:FF_RAJ,fontSize:14,color:MUTED,marginBottom:28}}>
+          {mode==="signup"?"Välkommen till PokéFolio!":"Välkommen tillbaka!"}
+        </div>
+        {err&&<div style={{padding:"10px 14px",borderRadius:8,background:`${RED}18`,border:`1px solid ${RED}44`,
+          fontFamily:FF_STM,fontSize:11,color:RED,marginBottom:16}}>{err}</div>}
+        <FieldInput label="E-POST" value={email} onChange={setEmail} type="email" placeholder="din@email.se"/>
+        {mode==="signup"&&<FieldInput label="ANVÄNDARNAMN" value={username} onChange={setUsername} placeholder="Ditt användarnamn"/>}
+        <FieldInput label="LÖSENORD" value={password} onChange={setPassword} type="password" placeholder="Minst 6 tecken"/>
+        <div onClick={submit} style={{width:"100%",padding:14,borderRadius:12,background:RED,textAlign:"center",
+          cursor:"pointer",fontFamily:FF_ORB,fontSize:13,color:"#fff",fontWeight:700,marginTop:8,
+          boxShadow:`0 0 24px ${RED}44`}}>
+          {mode==="signup"?"SKAPA KONTO":"LOGGA IN"}
+        </div>
+        <div style={{textAlign:"center",marginTop:18,fontFamily:FF_RAJ,fontSize:13,color:MUTED}}>
+          {mode==="signup"?"Har du redan ett konto? ":"Inget konto? "}
+          <span onClick={()=>onSwitch(mode==="signup"?"login":"signup")}
+            style={{color:RED,cursor:"pointer",fontWeight:600}}>
+            {mode==="signup"?"Logga in":"Skapa konto"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── EXPLORE CARD ── */
+function ExploreCard({c,binders,onAddToBinder,wishlist,onToggleWish,onCardClick,user,onNeedAuth}){
+  const [h,setH]=useState(false);
+  const [showMenu,setShowMenu]=useState(false);
+  const isWished=wishlist.includes(c.name);
+  return(
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>{setH(false);setShowMenu(false);}}
+      style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:SHADOW,
+        border:`1px solid ${h?`${c.acc}66`:"rgba(255,255,255,0.06)"}`,
+        boxShadow:h?`4px 8px 24px #000,0 0 18px ${c.acc}33`:`4px 4px 12px #000,-2px -2px 6px ${RAISED}`,
+        transform:h?"translateY(-4px)":"none",transition:"all .22s"}}>
+
+      {/* Card image — full bleed */}
+      <div onClick={()=>onCardClick&&onCardClick(c)}
+        style={{aspectRatio:"2/3",background:`linear-gradient(145deg,${c.a},${c.b})`,
+          position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {c.img&&<img src={c.img} alt={c.name} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/>}
+        {/* Foil sheen */}
+        <div style={{position:"absolute",inset:0,
+          background:"linear-gradient(135deg,rgba(255,255,255,0.14) 0%,transparent 45%,rgba(255,255,255,0.06) 70%,transparent 90%)",
+          pointerEvents:"none",zIndex:2}}/>
+        {/* Pokéball watermark centered */}
+        <svg viewBox="0 0 200 200" width="75%" height="75%" style={{opacity:0.12,position:"absolute"}}>
+          <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={c.acc||RED}/>
+          <circle cx="100" cy="100" r="90" fill="none" stroke={c.acc||RED} strokeWidth="8"/>
+          <rect x="10" y="93" width="180" height="14" fill={c.acc||RED}/>
+          <circle cx="100" cy="100" r="22" fill="#0a0a0a" stroke={c.acc||RED} strokeWidth="8"/>
+          <circle cx="100" cy="100" r="10" fill={c.acc||RED} opacity="0.5"/>
+        </svg>
+
+        {/* Wishlist btn */}
+        <div onClick={e=>{e.stopPropagation();if(!user){onNeedAuth();return;}onToggleWish(c.name);}}
+          style={{position:"absolute",top:8,right:8,width:28,height:28,borderRadius:"50%",zIndex:2,
+            background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",
+            border:`1px solid ${isWished?PINK:"rgba(255,255,255,0.25)"}`,cursor:"pointer"}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={isWished?PINK:"none"} stroke={isWished?PINK:"rgba(255,255,255,0.7)"} strokeWidth="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+
+        {/* Add to binder btn */}
+        <div onClick={e=>{e.stopPropagation();if(!user){onNeedAuth();return;}setShowMenu(v=>!v);}}
+          style={{position:"absolute",bottom:8,right:8,width:28,height:28,borderRadius:"50%",zIndex:2,
+            background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",
+            border:`1px solid ${c.acc}`,cursor:"pointer"}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={c.acc} strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+
+        {showMenu&&(
+          <div onClick={e=>e.stopPropagation()}
+            style={{position:"absolute",bottom:42,right:8,background:"#111",borderRadius:10,
+              border:"1px solid rgba(255,255,255,0.12)",boxShadow:"0 8px 32px #000",minWidth:160,zIndex:50}}>
+            {binders.length===0
+              ? <div style={{padding:"12px 14px",fontFamily:FF_STM,fontSize:10,color:MUTED}}>Inga binders ännu</div>
+              : binders.map((b,i)=>(
+                <div key={i} onClick={()=>{onAddToBinder(i,c);setShowMenu(false);}}
+                  style={{padding:"10px 14px",fontFamily:FF_RAJ,fontSize:13,color:WHITE,cursor:"pointer",
+                    borderBottom:i<binders.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}
+                  onMouseEnter={e=>e.currentTarget.style.background=`${RED}18`}
+                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                  {b.name}
+                </div>
+              ))
+            }
+          </div>
+        )}
+      </div>
+
+      {/* Info below */}
+      <div onClick={()=>onCardClick&&onCardClick(c)} style={{padding:"10px 12px"}}>
+        <div style={{fontFamily:FF_ORB,fontSize:10,fontWeight:700,color:WHITE,marginBottom:2,lineHeight:1.3,
+          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
+        <div style={{fontFamily:FF_RAJ,fontSize:11,color:MUTED,marginBottom:6,
+          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.set}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{fontFamily:FF_ORB,fontSize:12,fontWeight:900,color:WHITE}}>{c.val}</div>
+          <div style={{fontFamily:FF_RAJ,fontSize:10,color:c.up?GREEN:PINK}}>{c.up?"▲":"▼"} {c.chg}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── UTFORSKA PAGE ── */
+function Checkbox({label}){
+  const [on,setOn]=useState(false);
+  return(
+    <div onClick={()=>setOn(!on)} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:10}}>
+      <div style={{width:16,height:16,borderRadius:4,border:`1.5px solid ${on?RED:MUTED+"66"}`,
+        background:on?RED:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+        {on&&<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>}
+      </div>
+      <span style={{fontFamily:FF_RAJ,fontSize:14,color:TEXT,fontWeight:500}}>{label}</span>
+    </div>
+  );
+}
+function RadioOpt({label,selected,onSelect}){
+  return(
+    <div onClick={onSelect} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:10}}>
+      <div style={{width:16,height:16,borderRadius:"50%",border:`1.5px solid ${selected?RED:MUTED+"66"}`,
+        display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+        {selected&&<div style={{width:8,height:8,borderRadius:"50%",background:RED}}/>}
+      </div>
+      <span style={{fontFamily:FF_RAJ,fontSize:14,color:TEXT,fontWeight:500}}>{label}</span>
+    </div>
+  );
+}
+function FSec({title,badge,children}){
+  return(
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+        <span style={{fontFamily:FF_ORB,fontSize:12,fontWeight:700,color:WHITE}}>{title}</span>
+        {badge&&<span style={{background:RED,color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:4,fontFamily:FF_STM}}>{badge}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function UtforskaPage({onCardClick,user,wishlist:externalWishlist,onToggleWish:externalToggle,onNeedAuth}){
+  const [query,setQuery]=useState("");
+  const [sort,setSort]=useState("Best Match");
+  const [showSort,setShowSort]=useState(false);
+  const [pf,setPf]=useState(null);
+  const [internalWishlist, setInternalWishlist] = useState([]);
+  const wishlist = externalWishlist || internalWishlist;
+  const [selectedRarities, setSelectedRarities] = useState([]);
+  const [selectedSets,     setSelectedSets]     = useState([]);
+  const [priceMin,         setPriceMin]         = useState("");
+  const [priceMax,         setPriceMax]         = useState("");
+
+  // Derived filtered+sorted cards
+  const displayCards = (() => {
+    let result = [...EXPLORE_CARDS];
+
+    // Text search
+    const q = query.trim().toLowerCase();
+    if (q) result = result.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.set.toLowerCase().includes(q) ||
+      (c.rarity||"").toLowerCase().includes(q)
+    );
+
+    // Rarity filter
+    if (selectedRarities.length > 0)
+      result = result.filter(c => selectedRarities.includes(c.rarity));
+
+    // Set filter
+    if (selectedSets.length > 0)
+      result = result.filter(c => selectedSets.includes(c.set));
+
+    // Price filter
+    const minVal = parseInt(priceMin.replace(/\D/g,""));
+    const maxVal = parseInt(priceMax.replace(/\D/g,""));
+    if (!isNaN(minVal)) result = result.filter(c => parseInt((c.val||"0").replace(/\D/g,"")) >= minVal);
+    if (!isNaN(maxVal)) result = result.filter(c => parseInt((c.val||"0").replace(/\D/g,"")) <= maxVal);
+
+    // Portfolio filter
+    if (pf === "owned")    result = result.filter(c => wishlist.includes(c.name));
+    if (pf === "notowned") result = result.filter(c => !wishlist.includes(c.name));
+
+    // Sort
+    if (sort === "Pris: Lägst") result.sort((a,b) => parseInt((a.val||"0").replace(/\D/g,"")) - parseInt((b.val||"0").replace(/\D/g,"")));
+    if (sort === "Pris: Högst") result.sort((a,b) => parseInt((b.val||"0").replace(/\D/g,"")) - parseInt((a.val||"0").replace(/\D/g,"")));
+    if (sort === "Nyast")       result.sort((a,b) => (b.id||0)-(a.id||0));
+
+    return result;
+  })();
+
+  function toggleRarity(r){ setSelectedRarities(prev => prev.includes(r) ? prev.filter(x=>x!==r) : [...prev,r]); }
+  function toggleSet(s)    { setSelectedSets(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev,s]); }
+
+  function doRensa(){
+    setQuery(""); setSort("Best Match"); setProdType(null); setPf(null);
+    setSelectedRarities([]); setSelectedSets([]); setPriceMin(""); setPriceMax("");
+  }
+  const [binders,setBinders]=useState([]);
+  const [viewMode,setViewMode]=useState("grid");
+  const sortOpts=["Best Match","Pris: Lägst","Pris: Högst","Nyast"];
+
+  useEffect(()=>{
+    async function load(){
+      if(!user){setBinders([]);setInternalWishlist([]);return;}
+      try{const r=await window.storage.get(`pf-binders-v5-${user.email}`);if(r?.value)setBinders(JSON.parse(r.value));}catch(_){}
+      if(!externalWishlist){
+        try{const r=await window.storage.get(`pf-wishlist-${user.email}`);if(r?.value)setInternalWishlist(JSON.parse(r.value));}catch(_){}
+      }
+    }
+    load();
+  },[user?.email]);
+
+  function addToBinder(binderIdx,card){
+    setBinders(prev=>{
+      const updated=prev.map((b,i)=>{
+        if(i!==binderIdx)return b;
+        const pages=b.pages||[b.slots||Array(12).fill(null)];
+        let tp=-1,ts=-1;
+        for(let p=0;p<pages.length;p++){const idx=pages[p].findIndex(s=>!s);if(idx!==-1){tp=p;ts=idx;break;}}
+        let np=pages.map(p=>[...p]);
+        if(tp===-1){np.push(Array(12).fill(null));tp=np.length-1;ts=0;}
+        const colors=[["#7c2d12","#3b0a00","#fb923c"],["#1a1a3e","#0d0d22","#f59e0b"],["#064e3b","#022c1f","#34d399"]];
+        const col=colors[Math.floor(Math.random()*colors.length)];
+        np[tp][ts]={pid:1,name:card.name,set:card.set,a:card.a||col[0],b:card.b||col[1],acc:card.acc||col[2]};
+        return{...b,pages:np,cards:np.flat().filter(Boolean).length};
+      });
+      if(user)window.storage.set(`pf-binders-v5-${user.email}`,JSON.stringify(updated)).catch(()=>{});
+      return updated;
+    });
+  }
+
+  async function toggleWish(name){
+    if(externalToggle){ externalToggle(name); return; }
+    if(!user)return;
+    const next=internalWishlist.includes(name)?internalWishlist.filter(n=>n!==name):[...internalWishlist,name];
+    setInternalWishlist(next);
+    await window.storage.set(`pf-wishlist-${user.email}`,JSON.stringify(next));
+  }
+
+  function doSearch(){ /* search is live via displayCards */ }
+
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,overflowY:"auto",scrollbarWidth:"none"}}>
+      <div style={{padding:"24px 48px 12px"}}>
+        <div style={{fontFamily:FF_ORB,fontSize:20,fontWeight:900,color:WHITE,marginBottom:12,letterSpacing:-0.3}}>Hitta ett kort</div>
+        <div style={{display:"flex",gap:10}}>
+          <div style={{flex:1,display:"flex",alignItems:"center",gap:12,background:SHADOW,
+            borderRadius:10,padding:"11px 18px",border:"1px solid rgba(255,255,255,0.08)",
+            boxShadow:`inset 3px 3px 8px #000,inset -3px -3px 8px ${RAISED}`}}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")doSearch();}}
+              placeholder="Sök kort, set, sällsynthet..."
+              style={{background:"none",border:"none",outline:"none",color:WHITE,fontFamily:FF_RAJ,fontSize:15,fontWeight:500,width:"100%",caretColor:RED}}/>
+          </div>
+          <button onClick={doSearch} style={{background:RED,color:"#fff",border:"none",borderRadius:10,padding:"0 24px",
+            fontFamily:FF_ORB,fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:`0 0 14px ${RED}44`}}>Sök</button>
+          <button onClick={doRensa} style={{background:SHADOW,color:MUTED,border:"1px solid rgba(255,255,255,0.08)",
+            borderRadius:10,padding:"0 18px",fontFamily:FF_ORB,fontSize:13,fontWeight:700,
+            cursor:"pointer",boxShadow:`3px 3px 8px #000,-3px -3px 8px ${RAISED}`}}>Rensa</button>
+        </div>
+      </div>
+
+      <div style={{padding:"8px 48px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
+        <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:1}}>
+          {displayCards.length} KORT
+          {(selectedRarities.length+selectedSets.length+(priceMin?1:0)+(priceMax?1:0))>0&&
+            <span style={{color:RED,marginLeft:8}}>
+              · {selectedRarities.length+selectedSets.length+(priceMin?1:0)+(priceMax?1:0)} FILTER AKTIVA
+            </span>}
+        </div>
+        <div style={{position:"relative"}}>
+          <div onClick={()=>setShowSort(!showSort)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",
+            background:SHADOW,borderRadius:8,padding:"7px 14px",border:"1px solid rgba(255,255,255,0.08)",
+            boxShadow:`3px 3px 8px #000,-3px -3px 8px ${RAISED}`}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2"><path d="M3 6h18M6 12h12M9 18h6"/></svg>
+            <span style={{fontFamily:FF_RAJ,fontSize:13,color:TEXT,fontWeight:600}}>Sortera: </span>
+            <span style={{fontFamily:FF_RAJ,fontSize:13,color:WHITE,fontWeight:700}}>{sort}</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          {showSort&&(
+            <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:SHADOW,
+              border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,overflow:"hidden",zIndex:50,
+              boxShadow:"8px 8px 24px #000",minWidth:180}}>
+              {sortOpts.map((o,i)=>(
+                <div key={i} onClick={()=>{setSort(o);setShowSort(false);}} style={{
+                  padding:"10px 16px",fontFamily:FF_RAJ,fontSize:13,fontWeight:600,
+                  color:sort===o?WHITE:MUTED,background:sort===o?`${RED}18`:"transparent",
+                  cursor:"pointer",borderLeft:sort===o?`2px solid ${RED}`:"2px solid transparent",transition:"all .15s"}}>
+                  {o}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex",gap:4}}>
+          {["grid","list"].map(mode=>(
+            <div key={mode} onClick={()=>setViewMode(mode)} style={{background:viewMode===mode?RED:SHADOW,
+              borderRadius:8,padding:"7px 10px",border:`1px solid ${viewMode===mode?RED:"rgba(255,255,255,0.08)"}`,
+              boxShadow:`3px 3px 8px #000,-3px -3px 8px ${RAISED}`,cursor:"pointer",transition:"all .2s"}}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={viewMode===mode?WHITE:MUTED} strokeWidth="2" strokeLinecap="round">
+                {mode==="grid"
+                  ? <g><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></g>
+                  : <g><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></g>
+                }
+              </svg>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{display:"flex",padding:"16px 16px 32px 20px",gap:16,alignItems:"flex-start"}}>
+        <div style={{width:240,flexShrink:0,
+          background:SHADOW,borderRadius:14,border:"1px solid rgba(255,255,255,0.07)",
+          padding:"20px 16px"}}>
+          <FSec title="Status i portfölj">
+            <RadioOpt label="Äger"   selected={pf==="owned"}    onSelect={()=>setPf(pf==="owned"?null:"owned")}/>
+            <RadioOpt label="Äger ej" selected={pf==="notowned"} onSelect={()=>setPf(pf==="notowned"?null:"notowned")}/>
+          </FSec>
+          <FSec title="Prisintervall">
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              {[["Min",priceMin,setPriceMin],["Max",priceMax,setPriceMax]].map(([ph,val,set])=>(
+                <div key={ph} style={{flex:1,background:BASE,borderRadius:8,padding:"8px 12px",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  <input value={val} onChange={e=>set(e.target.value)} placeholder={ph}
+                    style={{background:"none",border:"none",outline:"none",color:WHITE,fontFamily:FF_RAJ,fontSize:13,width:"100%",caretColor:RED}}/>
+                </div>
+              ))}
+            </div>
+          </FSec>
+          <FSec title="Sällsynthet">
+            {["Common","Uncommon","Rare","Holo Rare","Alt Art","Special Illustration Rare","Rainbow Rare"].map(r=>(
+              <div key={r} onClick={()=>toggleRarity(r)} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:10}}>
+                <div style={{width:16,height:16,borderRadius:4,flexShrink:0,transition:"all .15s",
+                  border:`1.5px solid ${selectedRarities.includes(r)?RED:MUTED+"66"}`,
+                  background:selectedRarities.includes(r)?RED:"transparent",
+                  display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {selectedRarities.includes(r)&&<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>}
+                </div>
+                <span style={{fontFamily:FF_RAJ,fontSize:14,color:TEXT,fontWeight:500}}>{r}</span>
+              </div>
+            ))}
+          </FSec>
+          <FSec title="Serie / Set">
+            {[
+              "Scarlet & Violet 151","Scarlet & Violet Base","Paldea Evolved","Obsidian Flames",
+              "Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade",
+              "Stellar Crown","Surging Sparks","Prismatic Evolutions",
+              "Crown Zenith","Silver Tempest","Lost Origin","Astral Radiance",
+              "Evolving Skies","Chilling Reign","Battle Styles","Shining Fates",
+              "Vivid Voltage","Champion's Path","Darkness Ablaze","Rebel Clash",
+              "Sword & Shield Base","Hidden Fates","Unified Minds","Unbroken Bonds",
+              "Team Up","Lost Thunder","Dragon Majesty","Celestial Storm",
+              "Forbidden Light","Ultra Prism","Burning Shadows","Guardians Rising",
+              "Sun & Moon Base","Evolutions","Steam Siege","Fates Collide",
+              "Generations","BREAKpoint","BREAKthrough","Ancient Origins",
+              "Roaring Skies","Double Crisis","Primal Clash","Phantom Forces",
+              "Furious Fists","Flashfire","XY Base","Legendary Treasures",
+              "Boundaries Crossed","Dragons Exalted","Dark Explorers","Next Destinies",
+              "Noble Victories","Emerging Powers","Black & White Base",
+            ].map(s=>(
+              <div key={s} onClick={()=>toggleSet(s)} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:10}}>
+                <div style={{width:16,height:16,borderRadius:4,flexShrink:0,transition:"all .15s",
+                  border:`1.5px solid ${selectedSets.includes(s)?RED:MUTED+"66"}`,
+                  background:selectedSets.includes(s)?RED:"transparent",
+                  display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {selectedSets.includes(s)&&<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>}
+                </div>
+                <span style={{fontFamily:FF_RAJ,fontSize:13,color:TEXT,fontWeight:500,lineHeight:1.3}}>{s}</span>
+              </div>
+            ))}
+          </FSec>
+        </div>
+
+        <div id="utforska-scroll" style={{flex:1,padding:"4px 8px 20px 8px"}}>
+          {displayCards.length===0?(
+            <div style={{textAlign:"center",padding:"80px 0",fontFamily:FF_STM,fontSize:12,color:MUTED,letterSpacing:1}}>
+              INGA KORT HITTADES
+            </div>
+          ):viewMode==="grid"?(
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14}}>
+              {displayCards.map((c,i)=>(
+                <ExploreCard key={i} c={c} binders={binders} wishlist={wishlist} user={user}
+                  onAddToBinder={addToBinder} onToggleWish={toggleWish} onCardClick={onCardClick} onNeedAuth={onNeedAuth}/>
+              ))}
+            </div>
+          ):(
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {displayCards.map((c,i)=>(
+                <div key={i} onClick={()=>onCardClick&&onCardClick(c)}
+                  style={{display:"flex",alignItems:"center",gap:16,padding:"14px 18px",borderRadius:14,
+                    background:SHADOW,border:"1px solid rgba(255,255,255,0.07)",cursor:"pointer",transition:"all .2s"}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor=`${c.acc}55`;e.currentTarget.style.background=RAISED;}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.07)";e.currentTarget.style.background=SHADOW;}}>
+                  <div style={{width:44,height:60,borderRadius:8,background:`linear-gradient(145deg,${c.a},${c.b})`,
+                    flexShrink:0,border:`1px solid ${c.acc}44`}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:FF_ORB,fontSize:13,fontWeight:700,color:WHITE,marginBottom:3}}>{c.name}</div>
+                    <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED}}>{c.set} · {c.num}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontFamily:FF_ORB,fontSize:14,fontWeight:900,color:WHITE}}>
+                      <span style={{color:c.up?GREEN:PINK}}>{c.up?"▲":"▼"} </span>{c.val}
+                    </div>
+                    <div style={{fontFamily:FF_RAJ,fontSize:11,color:c.up?GREEN:PINK,marginTop:2}}>{c.chg}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── CARD DETAIL MODAL ── */
+/* ── CARD DETAIL MODAL ── */
+function CardDetailModal({card,onClose,isMaster}){
+  const [activeGradeTab, setActiveGradeTab] = useState("RAW");
+  const [popped,    setPopped]    = useState(false);
+  const [timeRange, setTimeRange] = useState("1M");
+  if(!card)return null;
+
+  const pid = card.pid||card.id||null;
+  const artUrl = pid ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pid}.png` : null;
+  const baseVal = parseInt((card.val||"0").replace(/[\s,]/g,""))||500;
+
+  const TIME_RANGES = [
+    {label:"1M",  months:1,  masterOnly:false},
+    {label:"3M",  months:3,  masterOnly:true},
+    {label:"6M",  months:6,  masterOnly:true},
+    {label:"1Å",  months:12, masterOnly:true},
+    {label:"ALL", months:36, masterOnly:true},
+  ];
+  const activeRange = TIME_RANGES.find(r=>r.label===timeRange)||TIME_RANGES[0];
+
+  const MONTHS_LABELS = ["JAN","FEB","MAR","APR","MAJ","JUN","JUL","AUG","SEP","OKT","NOV","DEC"];
+  function makeHist(mult) {
+    const n = activeRange.months;
+    return Array.from({length:Math.min(n,12)+1},(_,i)=>({
+      m: n<=12 ? MONTHS_LABELS[(12-n+i)%12] : `M${i+1}`,
+      v: Math.round(baseVal*mult*(0.45+(i/(n))*0.55+(Math.sin(i*1.1+mult)*0.06)))
+    }));
+  }
+
+  const GRADES = [
+    {label:"RAW",    mult:1,    color:MUTED,      desc:"Okvalificerat",   pop:"—",   gem:"—"},
+    {label:"PSA 6",  mult:1.4,  color:"#94a3b8",  desc:"Excellent",       pop:"312", gem:"—"},
+    {label:"PSA 7",  mult:1.8,  color:"#60a5fa",  desc:"Near Mint",       pop:"891", gem:"—"},
+    {label:"PSA 8",  mult:2.8,  color:"#34d399",  desc:"NM-Mint",         pop:"1204",gem:"—"},
+    {label:"PSA 9",  mult:5.5,  color:"#fbbf24",  desc:"Mint",            pop:"743", gem:"—"},
+    {label:"PSA 10", mult:18,   color:"#f87171",  desc:"Gem Mint",        pop:"89",  gem:"6.8%"},
+    {label:"BGS 9.5",mult:14,   color:"#a78bfa",  desc:"Gem Mint",        pop:"44",  gem:"—"},
+    {label:"CGC 10", mult:12,   color:"#fb923c",  desc:"Pristine",        pop:"27",  gem:"—"},
+  ];
+
+  const activeGrade = GRADES.find(g=>g.label===activeGradeTab)||GRADES[0];
+  const gradeVal = Math.round(baseVal * activeGrade.mult);
+
+  return(
+    <div onClick={()=>{ if(popped){setPopped(false);return;} onClose(); }}
+      style={{position:"fixed",inset:0,zIndex:500,display:"flex",alignItems:"center",
+        justifyContent:"center",background:"rgba(0,0,0,0.92)",backdropFilter:"blur(18px)"}}>
+
+      {/* ── POP-OUT CARD ── */}
+      <div style={{
+        position:"fixed",zIndex:600,
+        left:"50%", top:"50%",
+        transform: popped
+          ? "translate(-50%,-50%) scale(1) rotate(-2deg)"
+          : "translate(-50%,-50%) scale(0.2) rotate(12deg)",
+        opacity: popped?1:0,
+        pointerEvents: popped?"auto":"none",
+        transition:"all 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+        filter:`drop-shadow(0 32px 80px ${card.acc||RED}99)`,
+        perspective:"800px",
+      }} onClick={e=>{ e.stopPropagation(); setPopped(false); }}
+        onMouseMove={e=>{
+          if(e.buttons!==1) return;
+          const el = e.currentTarget.firstChild;
+          if(!el) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width  - 0.5;
+          const y = (e.clientY - r.top)  / r.height - 0.5;
+          el.style.transform = `rotateY(${x*28}deg) rotateX(${-y*20}deg) scale(1.02)`;
+        }}
+        onMouseUp={e=>{
+          const el = e.currentTarget.firstChild;
+          if(el) el.style.transform = "rotateY(0deg) rotateX(0deg) scale(1)";
+        }}
+        onMouseLeave={e=>{
+          const el = e.currentTarget.firstChild;
+          if(el) el.style.transform = "rotateY(0deg) rotateX(0deg) scale(1)";
+        }}>
+        <div style={{width:270,height:378,borderRadius:18,
+          background:`linear-gradient(165deg,${card.a||"#1a1a2e"},${card.b||"#060610"})`,
+          border:`2px solid ${card.acc||RED}`,
+          boxShadow:`0 0 100px ${card.acc||RED}55,0 40px 100px #000`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          position:"relative",overflow:"hidden",cursor:"grab",
+          transition:"transform 0.15s ease-out",
+          transformStyle:"preserve-3d"}}>
+          <div style={{position:"absolute",inset:0,
+            background:"linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 40%,rgba(255,255,255,0.08) 65%,transparent 85%)",
+            zIndex:2,pointerEvents:"none"}}/>
+          <svg viewBox="0 0 200 200" width="88%" height="88%" style={{opacity:0.14,position:"absolute"}}>
+            <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={card.acc||RED}/>
+            <circle cx="100" cy="100" r="90" fill="none" stroke={card.acc||RED} strokeWidth="8"/>
+            <rect x="10" y="93" width="180" height="14" fill={card.acc||RED}/>
+            <circle cx="100" cy="100" r="22" fill="#0a0a0a" stroke={card.acc||RED} strokeWidth="8"/>
+            <circle cx="100" cy="100" r="10" fill={card.acc||RED} opacity="0.5"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* ── MODAL ── */}
+      <div onClick={e=>e.stopPropagation()} style={{background:"#0e0e0e",borderRadius:22,
+        width:"min(1060px,96vw)",maxHeight:"92vh",border:"1px solid rgba(255,255,255,0.08)",
+        boxShadow:"0 40px 120px #000",display:"flex",overflow:"hidden",flexDirection:"column",
+        transition:"filter 0.4s,transform 0.4s",
+        filter:popped?"blur(3px) brightness(0.4)":"none",
+        transform:popped?"scale(0.95)":"scale(1)",
+        pointerEvents:popped?"none":"auto"}}>
+
+        {/* Top bar */}
+        <div style={{flexShrink:0,padding:"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.06)",
+          display:"flex",alignItems:"center",justifyContent:"space-between",background:"#111"}}>
+          <div>
+            <div style={{fontFamily:FF_ORB,fontSize:16,fontWeight:900,color:WHITE}}>{card.name}</div>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:WHITE,letterSpacing:1,marginTop:2}}>
+              {[card.set,card.num&&`#${card.num}`,card.rarity].filter(Boolean).join(" · ")}
+            </div>
+          </div>
+          <div onClick={onClose} style={{width:28,height:28,borderRadius:8,
+            border:"1px solid rgba(255,255,255,0.12)",display:"flex",alignItems:"center",
+            justifyContent:"center",cursor:"pointer",transition:"all .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.background=RED}
+            onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{flex:1,display:"flex",overflow:"hidden"}}>
+
+          {/* LEFT: black bg, clickable card art */}
+          <div style={{width:230,flexShrink:0,background:"#0a0a0a",borderRight:"1px solid rgba(255,255,255,0.06)",
+            display:"flex",flexDirection:"column",alignItems:"center",padding:"22px 16px",gap:14,
+            overflowY:"auto",scrollbarWidth:"none"}}>
+
+            {/* Clickable card */}
+            <div onClick={e=>{ e.stopPropagation(); setPopped(true); }}
+              style={{width:155,height:218,borderRadius:12,overflow:"hidden",cursor:"pointer",
+                border:`2px solid ${card.acc||RED}66`,
+                boxShadow:`0 8px 32px #000,0 0 24px ${card.acc||RED}44`,
+                background:`linear-gradient(165deg,${card.a||"#1a1a2e"},${card.b||"#060610"})`,
+                display:"flex",alignItems:"center",justifyContent:"center",position:"relative",
+                transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)"}}
+              onMouseEnter={e=>{ e.currentTarget.style.transform="scale(1.05) rotate(-1.5deg)"; e.currentTarget.style.boxShadow=`0 20px 50px #000,0 0 50px ${card.acc||RED}66`; e.currentTarget.style.borderColor=card.acc||RED; }}
+              onMouseLeave={e=>{ e.currentTarget.style.transform="scale(1)"; e.currentTarget.style.boxShadow=`0 8px 32px #000,0 0 24px ${card.acc||RED}44`; e.currentTarget.style.borderColor=`${card.acc||RED}66`; }}>
+              {/* Foil sheen */}
+              <div style={{position:"absolute",inset:0,
+                background:"linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 40%,rgba(255,255,255,0.07) 65%,transparent 85%)",
+                zIndex:2,pointerEvents:"none"}}/>
+              {/* Pokeball watermark */}
+              <svg viewBox="0 0 200 200" width="88%" height="88%" style={{opacity:0.13,position:"absolute"}}>
+                <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={card.acc||RED}/>
+                <circle cx="100" cy="100" r="90" fill="none" stroke={card.acc||RED} strokeWidth="8"/>
+                <rect x="10" y="93" width="180" height="14" fill={card.acc||RED}/>
+                <circle cx="100" cy="100" r="22" fill="#0a0a0a" stroke={card.acc||RED} strokeWidth="8"/>
+                <circle cx="100" cy="100" r="10" fill={card.acc||RED} opacity="0.5"/>
+              </svg>
+            </div>
+
+            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:4}}>
+              {[
+                {l:"SET",        v:card.set||"—"},
+                {l:"NUMMER",     v:card.num?`#${card.num}`:"—"},
+                {l:"SÄLLSYNTHET",v:card.rarity||"—"},
+                {l:"SPRÅK",      v:"Engelska"},
+                {l:"TRYCKÅR",    v:"2023"},
+                {l:"SERIE",      v:"Scarlet & Violet"},
+                {l:"CONDITION",  v:"Okvalificerat"},
+              ].map(r=>(
+                <div key={r.l} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",
+                  padding:"5px 8px",borderRadius:6,background:"rgba(255,255,255,0.03)"}}>
+                  <span style={{fontFamily:FF_STM,fontSize:7.5,color:MUTED,letterSpacing:1,flexShrink:0}}>{r.l}</span>
+                  <span style={{fontFamily:FF_STM,fontSize:7.5,color:WHITE,maxWidth:95,textAlign:"right",
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{width:"100%",padding:"10px",borderRadius:10,background:"rgba(255,255,255,0.03)",
+              border:`1px solid ${card.acc||RED}22`,textAlign:"center"}}>
+              <div style={{fontFamily:FF_STM,fontSize:8,color:MUTED,letterSpacing:1.5,marginBottom:4}}>RAW MARKNADSPRIS</div>
+              <div style={{fontFamily:FF_ORB,fontSize:20,fontWeight:900,color:WHITE}}>{baseVal.toLocaleString("sv-SE")} kr</div>
+              {card.chg&&<div style={{fontFamily:FF_STM,fontSize:9,color:card.up?GREEN:PINK,marginTop:3}}>{card.up?"▲":"▼"} {card.chg}</div>}
+            </div>
+          </div>
+
+          {/* RIGHT: grade analysis */}
+          <div style={{flex:1,overflowY:"auto",scrollbarWidth:"none",padding:"18px 20px",display:"flex",flexDirection:"column",gap:16}}>
+            <div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2,marginBottom:8}}>VÄLJ GRAD</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                {GRADES.map(g=>(
+                  <div key={g.label} onClick={()=>setActiveGradeTab(g.label)}
+                    style={{padding:"5px 11px",borderRadius:7,cursor:"pointer",transition:"all .2s",
+                      fontFamily:FF_STM,fontSize:9,letterSpacing:0.5,
+                      background:activeGradeTab===g.label?g.color+"22":"rgba(255,255,255,0.04)",
+                      border:`1px solid ${activeGradeTab===g.label?g.color:"rgba(255,255,255,0.08)"}`,
+                      color:activeGradeTab===g.label?g.color:MUTED}}>
+                    {g.label}
+                  </div>
+                ))}
+              </div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:activeGrade.color,marginTop:6,letterSpacing:1}}>
+                {activeGrade.desc} · {activeGrade.mult}x RAW · Pop: {activeGrade.pop}{activeGrade.gem!=="—"?` · Gem rate: ${activeGrade.gem}`:""}
+              </div>
+            </div>
+
+            <div style={{background:"#0a0a0a",borderRadius:14,padding:"14px 16px",border:`1px solid ${activeGrade.color}22`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                <div>
+                  <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1.5,marginBottom:3}}>PRIS · {activeGradeTab}</div>
+                  <div style={{fontFamily:FF_ORB,fontSize:24,fontWeight:900,color:activeGrade.color}}>{gradeVal.toLocaleString("sv-SE")} kr</div>
+                </div>
+                {/* Time range selector */}
+                <div style={{display:"flex",gap:4}}>
+                  {TIME_RANGES.map(r=>{
+                    const locked = r.masterOnly && !isMaster;
+                    const active = timeRange===r.label;
+                    return(
+                      <div key={r.label} onClick={()=>{ if(!locked) setTimeRange(r.label); }}
+                        title={locked?"Kräver Master":""}
+                        style={{ padding:"3px 9px", borderRadius:6, cursor:locked?"not-allowed":"pointer",
+                          fontFamily:FF_STM, fontSize:8, letterSpacing:0.5,
+                          background:active?activeGrade.color+"33":"rgba(255,255,255,0.05)",
+                          color:active?activeGrade.color:locked?"rgba(255,255,255,0.2)":MUTED,
+                          border:`1px solid ${active?activeGrade.color+"66":locked?"rgba(255,255,255,0.05)":"rgba(255,255,255,0.1)"}`,
+                          transition:"all .15s",
+                          position:"relative" }}>
+                        {r.label}
+                        {locked&&<span style={{position:"absolute",top:-2,right:-2,fontSize:7}}>🔒</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{height:90}}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={makeHist(activeGrade.mult)} margin={{top:2,right:2,bottom:0,left:0}}>
+                    <defs>
+                      <linearGradient id={`gA${activeGradeTab.replace(/\s/g,"")}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={activeGrade.color} stopOpacity={0.4}/>
+                        <stop offset="100%" stopColor={activeGrade.color} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="m" tick={{fontSize:8,fill:MUTED,fontFamily:"Share Tech Mono"}} axisLine={false} tickLine={false}/>
+                    <Tooltip contentStyle={{background:"#111",border:`1px solid ${activeGrade.color}44`,borderRadius:8,fontFamily:FF_STM,fontSize:9}}
+                      formatter={v=>[v.toLocaleString("sv-SE")+" kr","Pris"]} labelStyle={{color:MUTED}}/>
+                    <Area type="monotone" dataKey="v" stroke={activeGrade.color} strokeWidth={2} fill={`url(#gA${activeGradeTab.replace(/\s/g,"")})`} dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2,marginBottom:10}}>PRISUTVECKLING PER GRAD</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+                {GRADES.filter(g=>g.label!=="RAW").map(g=>{
+                  const gv=Math.round(baseVal*g.mult);
+                  return(
+                    <div key={g.label} onClick={()=>setActiveGradeTab(g.label)}
+                      style={{borderRadius:10,padding:"10px 10px 8px",background:"#0a0a0a",cursor:"pointer",
+                        border:`1px solid ${activeGradeTab===g.label?g.color+"66":"rgba(255,255,255,0.05)"}`,transition:"all .2s"}}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor=g.color+"44"}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor=activeGradeTab===g.label?g.color+"66":"rgba(255,255,255,0.05)"}>
+                      <div style={{fontFamily:FF_STM,fontSize:8,color:g.color,letterSpacing:1,marginBottom:2}}>{g.label}</div>
+                      <div style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:WHITE,marginBottom:6}}>{gv.toLocaleString("sv-SE")} kr</div>
+                      <div style={{height:44}}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={makeHist(g.mult)} margin={{top:1,right:1,bottom:0,left:1}}>
+                            <defs>
+                              <linearGradient id={`gM${g.label.replace(/[\s.]/g,"")}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={g.color} stopOpacity={0.35}/>
+                                <stop offset="100%" stopColor={g.color} stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <Area type="monotone" dataKey="v" stroke={g.color} strokeWidth={1.5} fill={`url(#gM${g.label.replace(/[\s.]/g,"")})`} dot={false}/>
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2,marginBottom:8}}>PRISJÄMFÖRELSE</div>
+              {GRADES.map(g=>{
+                const gv=Math.round(baseVal*g.mult);
+                const pct=Math.round(gv/(baseVal*18)*100);
+                return(
+                  <div key={g.label} onClick={()=>setActiveGradeTab(g.label)}
+                    style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",cursor:"pointer",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    <div style={{fontFamily:FF_STM,fontSize:8,color:activeGradeTab===g.label?g.color:MUTED,width:54,flexShrink:0}}>{g.label}</div>
+                    <div style={{flex:1,height:5,borderRadius:3,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:pct+"%",borderRadius:3,background:g.color,opacity:activeGradeTab===g.label?1:0.45,transition:"width .4s"}}/>
+                    </div>
+                    <div style={{fontFamily:FF_ORB,fontSize:9,fontWeight:700,color:activeGradeTab===g.label?g.color:WHITE,width:72,textAlign:"right",flexShrink:0}}>
+                      {gv.toLocaleString("sv-SE")} kr
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div>
+              <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:2,marginBottom:8}}>LISTNINGAR · {activeGradeTab}</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+                {[{src:"Cardmarket",flag:"🇪🇺",price:gradeVal},{src:"Tradera",flag:"🇸🇪",price:Math.round(gradeVal*0.93)},{src:"eBay",flag:"🌍",price:Math.round(gradeVal*1.12)}].map((m,i)=>(
+                  <div key={i} style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",textAlign:"center"}}>
+                    <div style={{fontSize:18,marginBottom:4}}>{m.flag}</div>
+                    <div style={{fontFamily:FF_STM,fontSize:8,color:MUTED,letterSpacing:1,marginBottom:4}}>{m.src}</div>
+                    <div style={{fontFamily:FF_ORB,fontSize:13,fontWeight:900,color:WHITE}}>{m.price.toLocaleString("sv-SE")} kr</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── DATABASE PAGE ── */
+const ALL_SETS = [
+  {id:"sv10pt5", name:"Perfect Order",              series:"Scarlet & Violet", releaseDate:"2026-03-27", total:203},
+  {id:"sv10",    name:"Ascended Heroes",             series:"Scarlet & Violet", releaseDate:"2026-01-30", total:613},
+  {id:"sv9pt5",  name:"Phantasmal Flames",           series:"Scarlet & Violet", releaseDate:"2025-11-14", total:214},
+  {id:"sve",     name:"Mega Evolution",              series:"Scarlet & Violet", releaseDate:"2025-09-26", total:310},
+  {id:"svep",    name:"Mega Evolution Promos",       series:"Scarlet & Violet", releaseDate:"2025-09-26", total:75},
+  {id:"sv9bb",   name:"Black Bolt",                  series:"Scarlet & Violet", releaseDate:"2025-07-19", total:404},
+  {id:"sv9wf",   name:"White Flare",                series:"Scarlet & Violet", releaseDate:"2025-07-18", total:405},
+  {id:"sv9dr",   name:"Destined Rivals",             series:"Scarlet & Violet", releaseDate:"2025-05-30", total:409},
+  {id:"sv9",     name:"Journey Together",            series:"Scarlet & Violet", releaseDate:"2025-03-28", total:333},
+  {id:"sv8pt5",  name:"Prismatic Evolutions",        series:"Scarlet & Violet", releaseDate:"2025-01-17", total:147},
+  {id:"sv8",     name:"Surging Sparks",              series:"Scarlet & Violet", releaseDate:"2024-11-08", total:252},
+  {id:"sv7",     name:"Stellar Crown",               series:"Scarlet & Violet", releaseDate:"2024-09-13", total:175},
+  {id:"sv6pt5",  name:"Shrouded Fable",              series:"Scarlet & Violet", releaseDate:"2024-08-02", total:99},
+  {id:"mcd24",   name:"McDonald's Promos 2024",      series:"Scarlet & Violet", releaseDate:"2024-08-13", total:15},
+  {id:"sv6",     name:"Twilight Masquerade",         series:"Scarlet & Violet", releaseDate:"2024-05-24", total:226},
+  {id:"sv5",     name:"Temporal Forces",             series:"Scarlet & Violet", releaseDate:"2024-03-22", total:218},
+  {id:"sv4pt5",  name:"Paldean Fates",               series:"Scarlet & Violet", releaseDate:"2024-01-26", total:245},
+  {id:"sv4",     name:"Paradox Rift",                series:"Scarlet & Violet", releaseDate:"2023-11-03", total:266},
+  {id:"sv3pt5",  name:"151",                         series:"Scarlet & Violet", releaseDate:"2023-09-22", total:207},
+  {id:"sv3",     name:"Obsidian Flames",             series:"Scarlet & Violet", releaseDate:"2023-08-11", total:230},
+  {id:"sv2",     name:"Paldea Evolved",              series:"Scarlet & Violet", releaseDate:"2023-06-09", total:279},
+  {id:"sv1",     name:"Scarlet & Violet",            series:"Scarlet & Violet", releaseDate:"2023-03-31", total:258},
+  {id:"svp",     name:"SV Promos",                   series:"Scarlet & Violet", releaseDate:"2023-03-31", total:null},
+  {id:"swsh12pt5",name:"Crown Zenith",               series:"Sword & Shield",   releaseDate:"2023-01-20", total:230},
+  {id:"mcd23",   name:"McDonald's Promos 2023",      series:"Sword & Shield",   releaseDate:"2023-08-08", total:15},
+  {id:"swsh9tg2",name:"Trick or Trade 2023",         series:"Sword & Shield",   releaseDate:"2023-09-01", total:30},
+  {id:"swsh12",  name:"Silver Tempest",              series:"Sword & Shield",   releaseDate:"2022-11-11", total:245},
+  {id:"swsh11",  name:"Lost Origin",                 series:"Sword & Shield",   releaseDate:"2022-09-09", total:246},
+  {id:"swsh10",  name:"Astral Radiance",             series:"Sword & Shield",   releaseDate:"2022-05-27", total:246},
+  {id:"swsh9",   name:"Brilliant Stars",             series:"Sword & Shield",   releaseDate:"2022-02-25", total:216},
+  {id:"mcd22",   name:"McDonald's Promos 2022",      series:"Sword & Shield",   releaseDate:"2022-08-11", total:15},
+  {id:"swsh8",   name:"Fusion Strike",               series:"Sword & Shield",   releaseDate:"2021-11-12", total:284},
+  {id:"swsh7",   name:"Evolving Skies",              series:"Sword & Shield",   releaseDate:"2021-08-27", total:237},
+  {id:"swsh6",   name:"Chilling Reign",              series:"Sword & Shield",   releaseDate:"2021-06-18", total:233},
+  {id:"swsh5",   name:"Battle Styles",               series:"Sword & Shield",   releaseDate:"2021-03-19", total:183},
+  {id:"swsh45",  name:"Shining Fates",               series:"Sword & Shield",   releaseDate:"2021-02-19", total:195},
+  {id:"mcd21",   name:"McDonald's Promos 2021",      series:"Sword & Shield",   releaseDate:"2021-06-25", total:15},
+  {id:"swsh9tg", name:"Trick or Trade 2021",         series:"Sword & Shield",   releaseDate:"2021-10-15", total:30},
+  {id:"swsh4",   name:"Vivid Voltage",               series:"Sword & Shield",   releaseDate:"2020-11-13", total:203},
+  {id:"swsh35",  name:"Champion's Path",             series:"Sword & Shield",   releaseDate:"2020-09-25", total:80},
+  {id:"swsh3",   name:"Darkness Ablaze",             series:"Sword & Shield",   releaseDate:"2020-08-14", total:201},
+  {id:"swsh2",   name:"Rebel Clash",                 series:"Sword & Shield",   releaseDate:"2020-05-01", total:209},
+  {id:"swsh1",   name:"Sword & Shield",              series:"Sword & Shield",   releaseDate:"2020-02-07", total:216},
+  {id:"sm12",    name:"Cosmic Eclipse",              series:"Sun & Moon",       releaseDate:"2019-11-01", total:272},
+  {id:"sm115",   name:"Hidden Fates",                series:"Sun & Moon",       releaseDate:"2019-08-23", total:163},
+  {id:"mcd19",   name:"McDonald's Promos 2019",      series:"Sun & Moon",       releaseDate:"2019-08-01", total:15},
+  {id:"sm11",    name:"Unified Minds",               series:"Sun & Moon",       releaseDate:"2019-08-02", total:258},
+  {id:"sm10",    name:"Unbroken Bonds",              series:"Sun & Moon",       releaseDate:"2019-05-03", total:234},
+  {id:"sm9",     name:"Team Up",                     series:"Sun & Moon",       releaseDate:"2019-02-01", total:196},
+  {id:"sm8",     name:"Lost Thunder",                series:"Sun & Moon",       releaseDate:"2018-11-02", total:236},
+  {id:"sm75",    name:"Dragon Majesty",              series:"Sun & Moon",       releaseDate:"2018-09-07", total:80},
+  {id:"sm7",     name:"Celestial Storm",             series:"Sun & Moon",       releaseDate:"2018-08-03", total:187},
+  {id:"sm6",     name:"Forbidden Light",             series:"Sun & Moon",       releaseDate:"2018-05-04", total:146},
+  {id:"sm5",     name:"Ultra Prism",                 series:"Sun & Moon",       releaseDate:"2018-02-02", total:173},
+  {id:"mcd18",   name:"McDonald's Promos 2018",      series:"Sun & Moon",       releaseDate:"2018-06-01", total:12},
+  {id:"sm4",     name:"Crimson Invasion",            series:"Sun & Moon",       releaseDate:"2017-11-03", total:124},
+  {id:"sm35",    name:"Shining Legends",             series:"Sun & Moon",       releaseDate:"2017-10-06", total:78},
+  {id:"sm3",     name:"Burning Shadows",             series:"Sun & Moon",       releaseDate:"2017-08-05", total:169},
+  {id:"sm2",     name:"Guardians Rising",            series:"Sun & Moon",       releaseDate:"2017-05-05", total:169},
+  {id:"sm1",     name:"Sun & Moon",                  series:"Sun & Moon",       releaseDate:"2017-02-03", total:149},
+  {id:"smp",     name:"SM Promos",                   series:"Sun & Moon",       releaseDate:"2017-02-03", total:null},
+  {id:"xy12",    name:"Evolutions",                  series:"XY",               releaseDate:"2016-11-02", total:113},
+  {id:"xy11",    name:"Steam Siege",                 series:"XY",               releaseDate:"2016-08-03", total:116},
+  {id:"xy10",    name:"Fates Collide",               series:"XY",               releaseDate:"2016-05-02", total:129},
+  {id:"g1",      name:"Generations",                 series:"XY",               releaseDate:"2016-02-22", total:115},
+  {id:"xy9",     name:"BREAKpoint",                  series:"XY",               releaseDate:"2016-02-03", total:123},
+  {id:"xy8",     name:"BREAKthrough",                series:"XY",               releaseDate:"2015-11-04", total:162},
+  {id:"xy7",     name:"Ancient Origins",             series:"XY",               releaseDate:"2015-08-12", total:100},
+  {id:"xy6",     name:"Roaring Skies",               series:"XY",               releaseDate:"2015-05-06", total:109},
+  {id:"dc1",     name:"Double Crisis",               series:"XY",               releaseDate:"2015-03-25", total:34},
+  {id:"xy5",     name:"Primal Clash",                series:"XY",               releaseDate:"2015-02-04", total:164},
+  {id:"xy4",     name:"Phantom Forces",              series:"XY",               releaseDate:"2014-11-05", total:122},
+  {id:"xy3",     name:"Furious Fists",               series:"XY",               releaseDate:"2014-08-13", total:114},
+  {id:"xy2",     name:"Flashfire",                   series:"XY",               releaseDate:"2014-05-07", total:109},
+  {id:"xy1",     name:"XY",                          series:"XY",               releaseDate:"2014-02-05", total:146},
+  {id:"xyp",     name:"XY Promos",                   series:"XY",               releaseDate:"2014-02-05", total:null},
+  {id:"bw11",    name:"Legendary Treasures",         series:"Black & White",    releaseDate:"2013-11-06", total:140},
+  {id:"bw10",    name:"Plasma Blast",                series:"Black & White",    releaseDate:"2013-08-14", total:105},
+  {id:"bw9",     name:"Plasma Freeze",               series:"Black & White",    releaseDate:"2013-05-08", total:122},
+  {id:"bw8",     name:"Plasma Storm",                series:"Black & White",    releaseDate:"2013-02-06", total:138},
+  {id:"bw7",     name:"Boundaries Crossed",          series:"Black & White",    releaseDate:"2012-11-07", total:153},
+  {id:"bw6",     name:"Dragons Exalted",             series:"Black & White",    releaseDate:"2012-08-15", total:128},
+  {id:"bw5",     name:"Dark Explorers",              series:"Black & White",    releaseDate:"2012-05-09", total:111},
+  {id:"bw4",     name:"Next Destinies",              series:"Black & White",    releaseDate:"2012-02-08", total:103},
+  {id:"bw3",     name:"Noble Victories",             series:"Black & White",    releaseDate:"2011-11-16", total:102},
+  {id:"bw2",     name:"Emerging Powers",             series:"Black & White",    releaseDate:"2011-08-31", total:98},
+  {id:"bw1",     name:"Black & White",               series:"Black & White",    releaseDate:"2011-04-25", total:115},
+  {id:"bwp",     name:"BW Promos",                   series:"Black & White",    releaseDate:"2011-04-25", total:null},
+  // HeartGold SoulSilver
+  {id:"hgss4",  name:"Triumphant",               series:"HeartGold SoulSilver",releaseDate:"2010-11-03",total:103},
+  {id:"hgss3",  name:"Undaunted",                series:"HeartGold SoulSilver",releaseDate:"2010-08-18",total:91},
+  {id:"hgss2",  name:"Unleashed",                series:"HeartGold SoulSilver",releaseDate:"2010-05-12",total:96},
+  {id:"hgss1",  name:"HeartGold SoulSilver",     series:"HeartGold SoulSilver",releaseDate:"2010-02-10",total:124},
+  // Platinum
+  {id:"pl4",    name:"Arceus",                   series:"Platinum",         releaseDate:"2009-11-04", total:111},
+  {id:"pl3",    name:"Supreme Victors",          series:"Platinum",         releaseDate:"2009-08-19", total:153},
+  {id:"pl2",    name:"Rising Rivals",            series:"Platinum",         releaseDate:"2009-05-13", total:120},
+  {id:"pl1",    name:"Platinum",                 series:"Platinum",         releaseDate:"2009-02-11", total:133},
+  // Diamond & Pearl
+  {id:"dp7",    name:"Stormfront",               series:"Diamond & Pearl",  releaseDate:"2008-11-05", total:106},
+  {id:"dp6",    name:"Legends Awakened",         series:"Diamond & Pearl",  releaseDate:"2008-08-20", total:147},
+  {id:"dp5",    name:"Majestic Dawn",            series:"Diamond & Pearl",  releaseDate:"2008-05-21", total:100},
+  {id:"dp4",    name:"Great Encounters",         series:"Diamond & Pearl",  releaseDate:"2008-02-13", total:106},
+  {id:"dp3",    name:"Secret Wonders",           series:"Diamond & Pearl",  releaseDate:"2007-11-07", total:132},
+  {id:"dp2",    name:"Mysterious Treasures",     series:"Diamond & Pearl",  releaseDate:"2007-08-22", total:124},
+  {id:"dp1",    name:"Diamond & Pearl",          series:"Diamond & Pearl",  releaseDate:"2007-05-23", total:130},
+  // EX Series
+  {id:"ex16",   name:"Power Keepers",            series:"EX",               releaseDate:"2007-02-14", total:108},
+  {id:"ex15",   name:"Dragon Frontiers",         series:"EX",               releaseDate:"2006-11-08", total:101},
+  {id:"ex14",   name:"Crystal Guardians",        series:"EX",               releaseDate:"2006-08-30", total:100},
+  {id:"ex13",   name:"Holon Phantoms",           series:"EX",               releaseDate:"2006-05-03", total:110},
+  {id:"ex12",   name:"Legend Maker",             series:"EX",               releaseDate:"2006-02-08", total:93},
+  {id:"ex11",   name:"Delta Species",            series:"EX",               releaseDate:"2005-10-31", total:114},
+  {id:"ex10",   name:"Unseen Forces",            series:"EX",               releaseDate:"2005-08-17", total:145},
+  {id:"ex9",    name:"Emerald",                  series:"EX",               releaseDate:"2005-05-09", total:106},
+  {id:"ex8",    name:"Deoxys",                   series:"EX",               releaseDate:"2005-02-14", total:108},
+  {id:"ex7",    name:"Team Rocket Returns",      series:"EX",               releaseDate:"2004-11-01", total:111},
+  {id:"ex6",    name:"FireRed & LeafGreen",      series:"EX",               releaseDate:"2004-08-30", total:116},
+  {id:"ex5",    name:"Hidden Legends",           series:"EX",               releaseDate:"2004-06-14", total:102},
+  {id:"ex4",    name:"Team Magma vs Team Aqua",  series:"EX",               releaseDate:"2004-03-15", total:97},
+  {id:"ex3",    name:"Dragon",                   series:"EX",               releaseDate:"2003-09-17", total:100},
+  {id:"ex2",    name:"Sandstorm",                series:"EX",               releaseDate:"2003-09-17", total:100},
+  {id:"ex1",    name:"Ruby & Sapphire",          series:"EX",               releaseDate:"2003-07-18", total:109},
+  // Neo / Base
+  {id:"neo4",   name:"Neo Destiny",              series:"Neo",              releaseDate:"2002-02-28", total:113},
+  {id:"neo3",   name:"Neo Revelation",           series:"Neo",              releaseDate:"2001-09-21", total:66},
+  {id:"neo2",   name:"Neo Discovery",            series:"Neo",              releaseDate:"2001-06-01", total:75},
+  {id:"neo1",   name:"Neo Genesis",              series:"Neo",              releaseDate:"2000-12-16", total:111},
+  {id:"gym2",   name:"Gym Challenge",            series:"Base",             releaseDate:"2000-10-16", total:132},
+  {id:"gym1",   name:"Gym Heroes",               series:"Base",             releaseDate:"2000-08-14", total:132},
+  {id:"tr",     name:"Team Rocket",              series:"Base",             releaseDate:"2000-04-24", total:83},
+  {id:"fossil", name:"Fossil",                   series:"Base",             releaseDate:"1999-10-10", total:62},
+  {id:"jungle", name:"Jungle",                   series:"Base",             releaseDate:"1999-06-16", total:64},
+  {id:"base1",  name:"Base Set",                 series:"Base",             releaseDate:"1999-01-09", total:102},
+];
+const SET_COLORS = {
+  "sv10pt5":{a:"#1a0a1a",b:"#2d0a2d",acc:"#e879f9"},
+  "sv10":   {a:"#0a1a2d",b:"#0a2d4a",acc:"#38bdf8"},
+  "sv9pt5": {a:"#1a0a0a",b:"#2d1a0a",acc:"#fb923c"},
+  "sve":    {a:"#1a0a0a",b:"#2d0a0a",acc:"#f87171"},
+  "svep":   {a:"#1a0a0a",b:"#2d0a14",acc:"#fb7185"},
+  "sv9bb":  {a:"#0a0a0a",b:"#1a1a1a",acc:"#94a3b8"},
+  "sv9wf":  {a:"#0a1a2d",b:"#0a0f2d",acc:"#c7d2fe"},
+  "sv9dr":  {a:"#1a0a0a",b:"#2d0a0a",acc:"#fca5a5"},
+  "sv9":    {a:"#0a1a0a",b:"#0a2d14",acc:"#86efac"},
+  "sv8pt5": {a:"#2d1a0a",b:"#1a0a2d",acc:"#fbbf24"},
+  "sv8":    {a:"#1a0a2d",b:"#0a0a2d",acc:"#818cf8"},
+  "sv7":    {a:"#0a1a2d",b:"#0a2d2d",acc:"#34d399"},
+  "sv6pt5": {a:"#1a1a0a",b:"#2d2d0a",acc:"#fde68a"},
+  "sv6":    {a:"#2d0a2d",b:"#1a0a1a",acc:"#c084fc"},
+  "sv5":    {a:"#0a1a1a",b:"#0a2d2d",acc:"#22d3ee"},
+  "sv4pt5": {a:"#2d1a0a",b:"#2d0a0a",acc:"#fdba74"},
+  "sv4":    {a:"#1a0a2d",b:"#2d0a2d",acc:"#a78bfa"},
+  "sv3pt5": {a:"#0a0a2d",b:"#0a1a2d",acc:"#60a5fa"},
+  "sv3":    {a:"#1a0a0a",b:"#2d1a0a",acc:"#f97316"},
+  "sv2":    {a:"#0a1a0a",b:"#0a2d1a",acc:"#4ade80"},
+  "sv1":    {a:"#1a0a0a",b:"#2d0a0a",acc:"#f87171"},
+  "default":{a:"#111",  b:"#1a1a1a",acc:"#e8192c"},
+};
+
+function getSetStyle(id){
+  return SET_COLORS[id]||SET_COLORS["default"];
+}
+function DatabasePage({user,onCardClick}){
+  const [query,     setQuery]     = useState("");
+  const [activeSet, setActiveSet] = useState(null);
+  const display = ALL_SETS.filter(s=>!query||s.name.toLowerCase().includes(query.toLowerCase()));
+  if(activeSet) return <SetDetailPage set={activeSet} onBack={()=>setActiveSet(null)} onCardClick={onCardClick}/>;
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+      <div style={{flexShrink:0,padding:"24px 48px 16px",borderBottom:`1px solid rgba(255,255,255,0.06)`}}>
+        <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:WHITE,marginBottom:4}}>Databas</div>
+        <div style={{fontFamily:FF_STM,fontSize:10,color:MUTED,letterSpacing:2,marginBottom:16}}>{ALL_SETS.length} SERIER</div>
+        <div style={{display:"flex",alignItems:"center",gap:10,background:SHADOW,borderRadius:10,padding:"10px 16px",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Sök serie..."
+            style={{background:"none",border:"none",outline:"none",color:WHITE,fontFamily:FF_RAJ,fontSize:15,width:"100%",caretColor:RED}}/>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",scrollbarWidth:"none",padding:"20px 48px 40px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:16}}>
+          {display.map(s=>{
+            const col=getSetStyle(s.id);
+            return(
+              <div key={s.id} onClick={()=>setActiveSet(s)}
+                style={{borderRadius:12,overflow:"hidden",cursor:"pointer",
+                  border:`1px solid ${col.acc}33`,transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.borderColor=col.acc+"88";e.currentTarget.style.boxShadow=`0 14px 36px #000,0 0 20px ${col.acc}22`;}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.borderColor=col.acc+"33";e.currentTarget.style.boxShadow="none";}}>
+                <div style={{height:150,display:"flex",alignItems:"center",justifyContent:"center",padding:20,
+                  background:`linear-gradient(145deg,${col.a},${col.b})`,position:"relative",overflow:"hidden"}}>
+                  <svg viewBox="0 0 200 200" width="90" height="90" style={{position:"absolute",opacity:0.07}}>
+                    <circle cx="100" cy="100" r="90" fill="#0a0a0a"/>
+                    <path d="M10,100 A90,90 0 0,1 190,100 Z" fill={col.acc}/>
+                    <path d="M10,100 A90,90 0 0,1 190,100" fill="none" stroke="white" strokeWidth="6"/>
+                    <path d="M10,100 A90,90 0 0,0 190,100" fill="none" stroke="white" strokeWidth="6"/>
+                    <rect x="10" y="91" width="180" height="18" fill="#0a0a0a"/>
+                    <line x1="10" y1="91" x2="190" y2="91" stroke="white" strokeWidth="6"/>
+                    <line x1="10" y1="109" x2="190" y2="109" stroke="white" strokeWidth="6"/>
+                    <circle cx="100" cy="100" r="26" fill="#0a0a0a" stroke="white" strokeWidth="6"/>
+                    <circle cx="100" cy="100" r="11" fill="white" opacity="0.5"/>
+                  </svg>
+                  <img src={`https://images.pokemontcg.io/${s.id}/logo.png`} alt={s.name}
+                    style={{maxWidth:"100%",maxHeight:110,objectFit:"contain",filter:`drop-shadow(0 2px 12px ${col.acc}88)`,position:"relative",zIndex:1}}
+                    onError={e=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}/>
+                  <div style={{display:"none",position:"absolute",inset:0,alignItems:"center",
+                    justifyContent:"center",flexDirection:"column",gap:8,padding:"16px",zIndex:1}}>
+                    <div style={{fontFamily:FF_ORB,fontSize:13,fontWeight:900,color:col.acc,
+                      textAlign:"center",lineHeight:1.2,textShadow:`0 0 20px ${col.acc}66`}}>{s.name}</div>
+                    <div style={{width:40,height:2,borderRadius:1,background:col.acc,opacity:0.5}}/>
+                    <div style={{fontFamily:FF_STM,fontSize:8,color:"rgba(255,255,255,0.4)",letterSpacing:2}}>{s.series.toUpperCase()}</div>
+                  </div>
+                </div>
+                <div style={{padding:"10px 14px 14px",borderTop:`1px solid ${col.acc}22`,
+                  background:`linear-gradient(180deg,${col.a}cc,#0a0a0a)`}}>
+                  <div style={{fontFamily:FF_ORB,fontSize:11,fontWeight:700,color:WHITE,marginBottom:5,
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1}}>{s.releaseDate}</div>
+                    {s.total&&<div style={{fontFamily:FF_ORB,fontSize:9,fontWeight:700,color:col.acc}}>{s.total} kort</div>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SetDetailPage({set,onBack,onCardClick}){
+  const [cards,   setCards]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [query,   setQuery]   = useState("");
+
+  useEffect(()=>{
+    fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${set.id}&orderBy=number&pageSize=250`, {headers: PTCG_HEADERS})
+      .then(r=>r.json())
+      .then(d=>{ setCards(d.data||[]); setLoading(false); })
+      .catch(()=>setLoading(false));
+  },[set.id]);
+
+  const display = query
+    ? cards.filter(c=>c.name.toLowerCase().includes(query.toLowerCase()))
+    : cards;
+
+  return(
+    <div style={{position:"absolute",inset:0,background:BASE,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+      {/* Header */}
+      <div style={{flexShrink:0,padding:"20px 48px 16px",borderBottom:`1px solid rgba(255,255,255,0.06)`,
+        background:SHADOW}}>
+        <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
+          <div onClick={onBack}
+            style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,padding:"7px 14px",
+              borderRadius:9,border:"1px solid rgba(255,255,255,0.1)",background:RAISED,
+              fontFamily:FF_STM,fontSize:10,color:WHITE,letterSpacing:1,transition:"all .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.background=RED}
+            onMouseLeave={e=>e.currentTarget.style.background=RAISED}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            TILLBAKA
+          </div>
+          {set.images?.logo && (
+            <img src={set.images.logo} alt={set.name}
+              style={{height:40,objectFit:"contain",filter:"drop-shadow(0 2px 6px rgba(0,0,0,0.5))"}}/>
+          )}
+          <div>
+            <div style={{fontFamily:FF_ORB,fontSize:16,fontWeight:900,color:WHITE}}>{set.name}</div>
+            <div style={{fontFamily:FF_STM,fontSize:9,color:MUTED,letterSpacing:1,marginTop:2}}>
+              {set.series} · {set.releaseDate} · {set.total} KORT
+            </div>
+          </div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:10,background:BASE,
+          borderRadius:10,padding:"10px 16px",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2.5" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input value={query} onChange={e=>setQuery(e.target.value)}
+            placeholder={`Sök i ${set.name}...`}
+            style={{background:"none",border:"none",outline:"none",color:WHITE,
+              fontFamily:FF_RAJ,fontSize:15,width:"100%",caretColor:RED}}/>
+        </div>
+      </div>
+
+      {/* Cards grid */}
+      <div style={{flex:1,overflowY:"auto",scrollbarWidth:"none",padding:"20px 48px 40px"}}>
+        {loading ? (
+          <div style={{textAlign:"center",padding:"80px 0",fontFamily:FF_STM,fontSize:11,color:MUTED,letterSpacing:2}}>
+            LADDAR KORT...
+          </div>
+        ) : (
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:14}}>
+            {display.map((c,i)=>(
+              <div key={c.id} onClick={()=>onCardClick&&onCardClick({
+                  name:c.name, set:set.name, num:`${c.number}/${set.printedTotal}`,
+                  rarity:c.rarity, val:"—", a:"#1a1a2e", b:"#060610", acc:RED
+                })}
+                style={{borderRadius:12,overflow:"hidden",cursor:"pointer",background:SHADOW,
+                  border:"1px solid rgba(255,255,255,0.07)",transition:"all .2s"}}
+                onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow=`0 10px 28px #000`; }}
+                onMouseLeave={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}>
+                {/* Card image */}
+                <div style={{background:"#0d0d0d",display:"flex",alignItems:"center",justifyContent:"center",padding:8}}>
+                  {c.images?.small
+                    ? <img src={c.images.small} alt={c.name}
+                        style={{width:"100%",borderRadius:8,display:"block"}}/>
+                    : <div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",
+                        fontFamily:FF_STM,fontSize:9,color:MUTED}}>NO IMG</div>
+                  }
+                </div>
+                {/* Info */}
+                <div style={{padding:"8px 10px"}}>
+                  <div style={{fontFamily:FF_ORB,fontSize:9,fontWeight:700,color:WHITE,
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:2}}>{c.name}</div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <div style={{fontFamily:FF_STM,fontSize:8,color:MUTED}}>#{c.number}</div>
+                    <div style={{fontFamily:FF_STM,fontSize:8,color:MUTED,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80,textAlign:"right"}}>{c.rarity}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+const COMMUNITY_CATS=["Prisdiskussion","Uppdatering","Nyhet","Event","Underhåll","Övrigt"];
+const CAT_COLORS={"Uppdatering":"#60a5fa","Nyhet":"#34d399","Event":"#f59e0b","Prisdiskussion":"#a78bfa","Underhåll":"#f87171","Övrigt":"#94a3b8"};
+const INITIAL_ANN=[
+  {id:1,cat:"Uppdatering",title:"Välkommen till Pokefolio Community! 🎉",body:"Tack för att du är här! Pokefolio är platsen för dig som samlar på Pokémon-kort. Spåra din samling, se priser i SEK och organisera dina binders. Gå med i vår Discord för att diskutera med andra samlare, dela fynd och hålla dig uppdaterad om nyheter.",date:"15 maj 2026",pinned:true,discord:"https://discord.gg/pokefolio"},
+];
+
+function AnnCard({a, isAdmin, onDelete}){
+  const [open, setOpen] = useState(false);
+  const col = CAT_COLORS[a.cat]||"#94a3b8";
+  return(
+    <div style={{background:"rgba(255,255,255,0.92)",borderRadius:16,overflow:"hidden",
+      border:a.pinned?`2px solid ${col}66`:"1px solid rgba(255,255,255,0.8)",
+      boxShadow:"0 4px 20px rgba(0,0,0,0.08)",backdropFilter:"blur(12px)",transition:"box-shadow .2s"}}
+      onMouseEnter={e=>e.currentTarget.style.boxShadow="0 10px 32px rgba(0,0,0,0.14)"}
+      onMouseLeave={e=>e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.08)"}>
+
+      {/* Header — always visible, click to expand */}
+      <div onClick={()=>setOpen(o=>!o)} style={{padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+            {a.pinned&&<div style={{fontFamily:FF_STM,fontSize:8,color:"#1e40af",background:"#dbeafe",padding:"3px 8px",borderRadius:5,letterSpacing:1}}>📌 FÄST</div>}
+            <div style={{fontFamily:FF_STM,fontSize:8,padding:"3px 9px",borderRadius:5,letterSpacing:1,
+              background:col+"22",color:col,border:`1px solid ${col}55`}}>
+              {a.cat.toUpperCase()}
+            </div>
+            <span style={{fontFamily:FF_STM,fontSize:9,color:"#9ca3af",marginLeft:"auto"}}>{a.date}</span>
+          </div>
+          <div style={{fontFamily:FF_ORB,fontSize:16,fontWeight:900,color:"#0f172a"}}>{a.title}</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"
+          style={{flexShrink:0,transition:"transform .25s",transform:open?"rotate(180deg)":"rotate(0deg)"}}>
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+
+      {/* Body — shown when expanded */}
+      {open&&(
+        <div style={{padding:"0 24px 22px",borderTop:"1px solid rgba(0,0,0,0.06)"}}>
+          <div style={{fontFamily:FF_RAJ,fontSize:15,color:"#374151",lineHeight:1.8,marginTop:16,marginBottom:a.discord?18:0}}>{a.body}</div>
+          {a.discord&&(
+            <a href={a.discord} target="_blank" rel="noreferrer"
+              style={{display:"inline-flex",alignItems:"center",gap:10,padding:"10px 20px",borderRadius:10,
+                background:"#5865f2",color:"white",textDecoration:"none",
+                fontFamily:FF_ORB,fontSize:11,fontWeight:700,boxShadow:"0 4px 14px rgba(88,101,242,0.35)",
+                transition:"background .2s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="#4752c4"}
+              onMouseLeave={e=>e.currentTarget.style.background="#5865f2"}>
+              <svg width="18" height="14" viewBox="0 0 71 55" fill="white"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.4.9a40 40 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.2 0A38.9 38.9 0 0 0 25.5.9 58.4 58.4 0 0 0 10.7 4.9C1.5 18.8-1 32.3.3 45.6a59 59 0 0 0 17.9 9 42.9 42.9 0 0 0 3.7-6 38.4 38.4 0 0 1-5.8-2.8l1.4-1.1a41.9 41.9 0 0 0 35.8 0l1.4 1.1a38.4 38.4 0 0 1-5.8 2.8 42.7 42.7 0 0 0 3.6 6 58.8 58.8 0 0 0 17.9-9C72 30.3 68.2 16.9 60.1 4.9ZM23.7 37.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z"/></svg>
+              GÅ MED I DISCORD
+            </a>
+          )}
+          {isAdmin&&(
+            <div onClick={onDelete}
+              style={{marginTop:14,display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer",
+                fontFamily:FF_STM,fontSize:9,color:"#9ca3af",letterSpacing:1,transition:"color .15s"}}
+              onMouseEnter={e=>e.currentTarget.style.color="#ef4444"}
+              onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              TA BORT
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommunityPage({user,isAdmin}){
+  const [anns,setAnns]=useState(INITIAL_ANN);
+  const [showForm,setShowForm]=useState(false);
+  const [nTitle,setNTitle]=useState("");
+  const [nBody,setNBody]=useState("");
+  const [nCat,setNCat]=useState("Nyhet");
+  const [nPin,setNPin]=useState(false);
+
+  function post(){
+    if(!nTitle.trim()||!nBody.trim())return;
+    const d=new Date().toLocaleDateString("sv-SE",{day:"numeric",month:"long",year:"numeric"});
+    setAnns(a=>[{id:Date.now(),cat:nCat,title:nTitle,body:nBody,date:d,pinned:nPin},...a]);
+    setNTitle("");setNBody("");setNCat("Nyhet");setNPin(false);setShowForm(false);
+  }
+
+  const sorted=[...anns].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+
+  return(
+    <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+      <style>{`
+        @keyframes skyMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        @keyframes float1 { 0%,100%{transform:translateX(0px) translateY(0px)} 50%{transform:translateX(40px) translateY(-15px)} }
+        @keyframes float2 { 0%,100%{transform:translateX(0px) translateY(0px)} 50%{transform:translateX(-60px) translateY(-10px)} }
+        @keyframes float3 { 0%,100%{transform:translateX(0px) translateY(0px)} 50%{transform:translateX(30px) translateY(-20px)} }
+      `}</style>
+      {/* Animated gradient sky */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#bfdbfe,#93c5fd,#6ee7b7,#a7f3d0,#bfdbfe)",backgroundSize:"400% 400%",animation:"skyMove 18s ease infinite"}}/>
+      {/* Clouds SVG layer */}
+      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none"}} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <g style={{animation:"float1 14s ease-in-out infinite",transformOrigin:"200px 140px"}}>
+          <ellipse cx="200" cy="140" rx="110" ry="44" fill="white" opacity="0.75"/>
+          <ellipse cx="250" cy="122" rx="70" ry="42" fill="white" opacity="0.75"/>
+          <ellipse cx="155" cy="152" rx="64" ry="32" fill="white" opacity="0.75"/>
+        </g>
+        <g style={{animation:"float2 20s ease-in-out infinite",transformOrigin:"900px 180px"}}>
+          <ellipse cx="900" cy="180" rx="90" ry="36" fill="white" opacity="0.65"/>
+          <ellipse cx="950" cy="164" rx="58" ry="34" fill="white" opacity="0.65"/>
+          <ellipse cx="858" cy="190" rx="52" ry="26" fill="white" opacity="0.65"/>
+        </g>
+        <g style={{animation:"float3 17s ease-in-out infinite",transformOrigin:"550px 100px"}}>
+          <ellipse cx="550" cy="100" rx="120" ry="46" fill="white" opacity="0.55"/>
+          <ellipse cx="610" cy="84" rx="76" ry="40" fill="white" opacity="0.55"/>
+        </g>
+        {/* Ground */}
+        <ellipse cx="720" cy="900" rx="900" ry="280" fill="#4ade80" opacity="0.5"/>
+        <ellipse cx="720" cy="920" rx="900" ry="200" fill="#22c55e" opacity="0.4"/>
+      </svg>
+
+      {/* Content */}
+      <div style={{position:"absolute",inset:0,overflowY:"auto",scrollbarWidth:"none",padding:"32px 48px 60px"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
+          <div>
+            <div style={{fontFamily:FF_ORB,fontSize:28,fontWeight:900,color:"#0f172a",letterSpacing:-0.5}}>Community</div>
+            <div style={{fontFamily:FF_STM,fontSize:10,color:"#475569",letterSpacing:2,marginTop:4}}>NYHETER & ANNOUNCEMENTS FRÅN POKEFOLIO-TEAMET</div>
+          </div>
+          {isAdmin&&(
+            <div onClick={()=>setShowForm(s=>!s)}
+              style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,padding:"10px 20px",
+                borderRadius:10,background:"#0f172a",color:"white",fontFamily:FF_ORB,fontSize:11,fontWeight:700,
+                boxShadow:"0 4px 16px rgba(15,23,42,0.3)",transition:"background .2s"}}
+              onMouseEnter={e=>e.currentTarget.style.background=RED}
+              onMouseLeave={e=>e.currentTarget.style.background="#0f172a"}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              NY ANNONS
+            </div>
+          )}
+        </div>
+
+        {showForm&&isAdmin&&(
+          <div style={{background:"rgba(255,255,255,0.96)",borderRadius:16,padding:"24px 28px",marginBottom:24,
+            border:"1px solid rgba(15,23,42,0.12)",boxShadow:"0 8px 32px rgba(0,0,0,0.1)",backdropFilter:"blur(8px)"}}>
+            <div style={{fontFamily:FF_ORB,fontSize:13,fontWeight:700,color:"#0f172a",marginBottom:14}}>NY ANNONS</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+              {COMMUNITY_CATS.map(c=>(
+                <div key={c} onClick={()=>setNCat(c)}
+                  style={{padding:"5px 12px",borderRadius:7,cursor:"pointer",fontFamily:FF_STM,fontSize:9,letterSpacing:1,
+                    background:nCat===c?CAT_COLORS[c]||"#0f172a":"rgba(0,0,0,0.05)",
+                    color:nCat===c?"white":"#374151",
+                    border:`1px solid ${nCat===c?CAT_COLORS[c]||"#0f172a":"rgba(0,0,0,0.1)"}`,transition:"all .15s"}}>
+                  {c}
+                </div>
+              ))}
+            </div>
+            <input value={nTitle} onChange={e=>setNTitle(e.target.value)} placeholder="Rubrik..."
+              style={{width:"100%",padding:"10px 14px",borderRadius:9,border:"1px solid #e2e8f0",
+                fontFamily:FF_ORB,fontSize:13,marginBottom:10,outline:"none",color:"#0f172a",boxSizing:"border-box"}}/>
+            <textarea value={nBody} onChange={e=>setNBody(e.target.value)} placeholder="Meddelande..." rows={4}
+              style={{width:"100%",padding:"10px 14px",borderRadius:9,border:"1px solid #e2e8f0",
+                fontFamily:FF_RAJ,fontSize:14,marginBottom:12,outline:"none",color:"#374151",
+                resize:"vertical",boxSizing:"border-box"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div onClick={()=>setNPin(p=>!p)} style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}>
+                <div style={{width:16,height:16,borderRadius:4,
+                  border:`2px solid ${nPin?"#0f172a":"#d1d5db"}`,
+                  background:nPin?"#0f172a":"white",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {nPin&&<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>}
+                </div>
+                <span style={{fontFamily:FF_STM,fontSize:9,color:"#374151",letterSpacing:1}}>FÄST LÄNGST UPP</span>
+              </div>
+              <div style={{flex:1}}/>
+              <div onClick={()=>setShowForm(false)} style={{padding:"8px 16px",borderRadius:8,cursor:"pointer",
+                fontFamily:FF_STM,fontSize:10,color:"#6b7280",border:"1px solid #e2e8f0"}}>AVBRYT</div>
+              <div onClick={post} style={{padding:"8px 20px",borderRadius:8,cursor:"pointer",
+                background:"#0f172a",color:"white",fontFamily:FF_ORB,fontSize:10,fontWeight:700,
+                opacity:nTitle&&nBody?1:0.4}}>PUBLICERA</div>
+            </div>
+          </div>
+        )}
+
+        <div style={{display:"flex",flexDirection:"column",gap:14,maxWidth:720,margin:"0 auto"}}>
+          {sorted.map(a=><AnnCard key={a.id} a={a} isAdmin={isAdmin} onDelete={()=>setAnns(x=>x.filter(y=>y.id!==a.id))}/>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [page,setPage]=useState("home");
+  const [selectedCard,setSelectedCard]=useState(null);
+  const [user,setUser]=useState(null);
+  const [authPage,setAuthPage]=useState(null);
+  const [poppedHeroCard,setPoppedHeroCard]=useState(null);
+  const [wishlist,setWishlist]=useState([]);
+
+  async function toggleWish(name){
+    if(!user)return;
+    const next=wishlist.includes(name)?wishlist.filter(n=>n!==name):[...wishlist,name];
+    setWishlist(next);
+    try{await window.storage.set(`pf-wishlist-${user.email}`,JSON.stringify(next));}catch(_){}
+  }
+
+  useEffect(()=>{
+    if(!user){setWishlist([]);return;}
+    window.storage.get(`pf-wishlist-${user.email}`).then(r=>{if(r?.value)setWishlist(JSON.parse(r.value));}).catch(()=>{});
+  },[user]);
+
+  useEffect(()=>{
+    async function loadUser(){
+      try{const res=await window.storage.get("pf-session");if(res?.value)setUser(JSON.parse(res.value));}catch(_){}
+    }
+    loadUser();
+  },[]);
+
+  function logout(){setUser(null);window.storage.delete("pf-session").catch(()=>{});setPage("home");}
+
+  return(
+    <div style={{fontFamily:FF_RAJ,background:BASE,color:TEXT,height:"100vh",overflow:"hidden",display:"flex",flexDirection:"column",paddingTop:60}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+        * { box-sizing:border-box; margin:0; padding:0; }
+        ::-webkit-scrollbar { display:none; }
+        * { scrollbar-width:none; }
+      `}</style>
+
+      {/* NAV */}
+      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:200,display:"flex",alignItems:"center",
+        justifyContent:"space-between",padding:"0 52px",height:60,
+        background:"rgba(10,10,10,0.55)",borderBottom:`1px solid ${RED}18`,backdropFilter:"blur(18px)"}}>
+        <div onClick={()=>setPage("home")} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+          <svg width="30" height="30" viewBox="0 0 200 200" fill="none">
+            <circle cx="100" cy="100" r="90" fill="#0a0a0a"/>
+            <path d="M10,100 A90,90 0 0,1 190,100 Z" fill="#c0121f"/>
+            <path d="M10,100 A90,90 0 0,1 190,100" fill="none" stroke="white" strokeWidth="6"/>
+            <path d="M10,100 A90,90 0 0,0 190,100" fill="none" stroke="white" strokeWidth="6"/>
+            <rect x="10" y="91" width="180" height="18" fill="#0a0a0a"/>
+            <line x1="10" y1="91" x2="190" y2="91" stroke="white" strokeWidth="6"/>
+            <line x1="10" y1="109" x2="190" y2="109" stroke="white" strokeWidth="6"/>
+            <circle cx="100" cy="100" r="26" fill="#0a0a0a" stroke="white" strokeWidth="6"/>
+            <circle cx="100" cy="100" r="11" fill="white" opacity="0.5"/>
+          </svg>
+          <div style={{fontFamily:FF_ORB,fontSize:17,fontWeight:900,letterSpacing:2,color:WHITE}}>
+            POKÉ<span style={{color:RED}}>FOLIO</span>
+          </div>
+        </div>
+        <ul style={{display:"flex",gap:32,listStyle:"none",fontSize:13,fontWeight:600,color:MUTED,letterSpacing:1,textTransform:"uppercase"}}>
+          {[{l:"Utforska",p:"utforska"},{l:"Databas",p:"databas"},{l:"Portfolio",p:"portfolio",locked:true},{l:"Community",p:"community"}].map(item=>(
+            <li key={item.l} onClick={()=>{
+              if(item.p==="portfolio"&&!user){setAuthPage("signup");return;}
+              if(item.p)setPage(item.p);
+            }} style={{cursor:item.p?"pointer":"default",color:page===item.p?WHITE:MUTED,transition:"color .15s"}}
+            onMouseEnter={e=>{if(item.p)e.currentTarget.style.color=WHITE;}}
+            onMouseLeave={e=>{e.currentTarget.style.color=page===item.p?WHITE:MUTED;}}>{item.l}</li>
+          ))}
+        </ul>
+        <div style={{display:"flex",gap:8}}>
+          {user
+            ? <UserMenu user={user}
+                onProfile={()=>setPage("profile")}
+                onPortfolio={()=>setPage("portfolio")}
+                onWishlist={()=>setPage("wishlist")}
+                onSettings={()=>setPage("settings")}
+                onAdmin={()=>setPage("admin")}
+                onLogout={logout}/>
+            : <>
+                <CyberBtn color={MUTED} onClick={()=>setAuthPage("login")}>Logga in</CyberBtn>
+                <CyberBtn onClick={()=>setAuthPage("signup")}>Skapa konto</CyberBtn>
+              </>
+          }
+        </div>
+      </nav>
+
+      {/* PAGES */}
+      <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+        <CardDetailModal card={selectedCard} onClose={()=>setSelectedCard(null)}
+          isMaster={ADMIN_USERNAMES.includes(user?.username?.toLowerCase())||MASTER_USERS.includes(user?.email)}/>
+        {authPage&&<AuthModal mode={authPage} onClose={()=>setAuthPage(null)} onSuccess={u=>{setUser(u);setAuthPage(null);}} onSwitch={m=>setAuthPage(m)}/>}
+
+        {page==="databas"   && <DatabasePage user={user} onCardClick={setSelectedCard}/>}
+        {page==="community" && <CommunityPage user={user} isAdmin={ADMIN_USERNAMES.includes(user?.username?.toLowerCase())}/>}
+        {page==="utforska"  && <UtforskaPage onCardClick={setSelectedCard} user={user} wishlist={wishlist} onToggleWish={toggleWish} onNeedAuth={()=>setAuthPage("signup")}/>}
+        {page==="portfolio" && <PortfolioPage user={user} onCardClick={setSelectedCard}/> }
+        {page==="profile"   && <ProfilePage user={user} onBack={()=>setPage("home")}/> }
+        {page==="wishlist"  && <WishlistPage user={user} wishlist={wishlist} onToggleWish={toggleWish} onCardClick={setSelectedCard} onBack={()=>setPage("home")}/>}
+        {page==="settings"  && <SettingsPage user={user} onBack={()=>setPage("home")} onLogout={logout}/>}
+        {page==="admin"     && ADMIN_USERNAMES.includes(user?.username?.toLowerCase()) && <AdminPage user={user} onBack={()=>setPage("home")}/>}
+
+        {page==="home" && (
+          <div style={{height:"100%",overflowY:"auto",scrollbarWidth:"none",
+            scrollSnapType:"y mandatory",scrollBehavior:"smooth"}}>
+
+            {/* HERO */}
+            <section style={{height:"100vh",display:"flex",alignItems:"center",
+              scrollSnapAlign:"start",scrollSnapStop:"always",overflow:"hidden",position:"relative"}}>
+
+              {/* Pokeball background */}
+              <div style={{position:"fixed",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
+                <svg viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg"
+                  style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:"65%",height:"90%",opacity:0.07}}>
+                  <defs><clipPath id="bgc"><circle cx="720" cy="450" r="420"/></clipPath></defs>
+                  <g clipPath="url(#bgc)">
+                    <circle cx="720" cy="450" r="420" fill="#0a0a0a"/>
+                    <path d="M300,450 A420,420 0 0,1 1140,450 Z" fill="#c0121f"/>
+                    <path d="M300,450 A420,420 0 0,1 1140,450" fill="none" stroke="white" strokeWidth="25"/>
+                    <path d="M300,450 A420,420 0 0,0 1140,450" fill="none" stroke="white" strokeWidth="25"/>
+                    <rect x="300" y="417" width="840" height="66" fill="#0a0a0a"/>
+                    <line x1="300" y1="417" x2="1140" y2="417" stroke="white" strokeWidth="25"/>
+                    <line x1="300" y1="483" x2="1140" y2="483" stroke="white" strokeWidth="25"/>
+                    <circle cx="720" cy="450" r="108" fill="#0a0a0a" stroke="white" strokeWidth="33"/>
+                    <circle cx="720" cy="450" r="46" fill="white" opacity="0.5"/>
+                  </g>
+                </svg>
+              </div>
+
+              <style>{`
+                @keyframes floatCard0 {
+                  0%,100%{transform:rotate(-15deg) translateX(-110px) translateY(0px);}
+                  50%{transform:rotate(-15deg) translateX(-110px) translateY(-18px);}
+                }
+                @keyframes floatCard1 {
+                  0%,100%{transform:rotate(-5deg) translateX(-28px) translateY(0px);}
+                  50%{transform:rotate(-5deg) translateX(-28px) translateY(-26px);}
+                }
+                @keyframes floatCard2 {
+                  0%,100%{transform:rotate(8deg) translateX(80px) translateY(0px);}
+                  50%{transform:rotate(8deg) translateX(80px) translateY(-14px);}
+                }
+                .hero-card { transition: box-shadow .3s, filter .3s; }
+                .hero-card:hover {
+                  filter: brightness(1.25);
+                  z-index: 10 !important;
+                }
+                @keyframes glitch {
+                  0%,90%,100% { clip-path:inset(0 0 0 0); transform:translateX(0); text-shadow:none; }
+                  91% { clip-path:inset(10% 0 60% 0); transform:translateX(-4px); text-shadow:-3px 0 #00e676, 3px 0 #9d4edd; }
+                  93% { clip-path:inset(55% 0 10% 0); transform:translateX(4px); text-shadow:3px 0 #00e676, -3px 0 #9d4edd; }
+                  95% { clip-path:inset(30% 0 40% 0); transform:translateX(-2px); text-shadow:-2px 0 #ff2d78; }
+                  97% { clip-path:inset(0 0 0 0); transform:translateX(2px); text-shadow:2px 0 #9d4edd; }
+                }
+                .glitch-din {
+                  display:inline-block;
+                  animation: glitch 4s infinite;
+                  color: #e8192c;
+                }
+              `}</style>
+
+              <div style={{maxWidth:1200,margin:"0 auto",padding:"0 52px",width:"100%",position:"relative",zIndex:1}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:56,alignItems:"center"}}>
+                  <div>
+                    <h1 style={{fontFamily:FF_ORB,fontSize:82,fontWeight:900,lineHeight:1.05,letterSpacing:-2,marginBottom:28}}>
+                      <span style={{display:"block"}}><span className="glitch-din">DIN</span></span>
+                      <span style={{display:"block",color:WHITE}}>POKÉMON</span>
+                      <span style={{display:"block",color:"#000",WebkitTextStroke:"1.5px rgba(255,255,255,0.5)"}}>SAMLING</span>
+                    </h1>
+                    <p style={{fontSize:20,color:MUTED,lineHeight:1.75,marginBottom:36,fontWeight:500}}>
+                      Se vad dina kort är värda i SEK, organisera bindern och håll koll på hur samlingen växer.
+                    </p>
+                    <div style={{display:"flex",gap:12}}>
+                      <CyberBtn lg onClick={()=>setAuthPage("signup")}>Kom igång gratis</CyberBtn>
+                      <CyberBtn color={MUTED} onClick={()=>setPage("utforska")}>Utforska kort</CyberBtn>
+                    </div>
+                  </div>
+                  {/* card fan */}
+                  <div style={{position:"relative",height:520,display:"flex",alignItems:"center",justifyContent:"center"}}>
+
+                    <style>{`
+                      .hero-card { transition: box-shadow .3s, border-color .3s, transform .3s; }
+                      .hero-card:hover { z-index:10 !important; }
+                      @keyframes popOut {
+                        0%  { transform:translate(-50%,-50%) scale(0.15) rotate(-12deg); opacity:0; filter:brightness(3); }
+                        40% { transform:translate(-50%,-50%) scale(1.08) rotate(2deg);   opacity:1; filter:brightness(1.4); }
+                        65% { transform:translate(-50%,-50%) scale(0.96) rotate(-1deg);  opacity:1; filter:brightness(1); }
+                        80% { transform:translate(-50%,-50%) scale(1.03) rotate(0.5deg); opacity:1; }
+                        100%{ transform:translate(-50%,-50%) scale(1)    rotate(-1.5deg);opacity:1; }
+                      }
+                      @keyframes glowPulse {
+                        0%,100% { box-shadow: 0 0 60px var(--acc), 0 0 120px var(--acc), 0 40px 100px #000; }
+                        50%     { box-shadow: 0 0 100px var(--acc), 0 0 200px var(--acc), 0 40px 100px #000; }
+                      }
+                    `}</style>
+
+                    {[
+                      {a:"#7c2d12",b:"#3b0a00",acc:"#fb923c",anim:"floatCard0 3.2s ease-in-out infinite",delay:"0s",   img:"https://images.pokemontcg.io/sv3pt5/6_hires.png"},
+                      {a:"#1a1a3e",b:"#0d0d22",acc:"#a78bfa",anim:"floatCard1 3.8s ease-in-out infinite",delay:"0.4s", img:"https://images.pokemontcg.io/swsh7/215_hires.png"},
+                      {a:"#064e3b",b:"#022c1f",acc:"#34d399",anim:"floatCard2 3s ease-in-out infinite",  delay:"0.8s", img:"https://images.pokemontcg.io/sv3pt5/205_hires.png"},
+                    ].map((c,i)=>(
+                      <div key={i} className="hero-card"
+                        onClick={()=>setPoppedHeroCard(i===poppedHeroCard?null:i)}
+                        onMouseEnter={e=>{
+                          e.currentTarget.style.boxShadow=`0 0 40px ${c.acc}cc, 0 0 80px ${c.acc}88, inset 0 0 30px ${c.acc}22, 0 8px 40px #000`;
+                          e.currentTarget.style.borderColor=`${c.acc}cc`;
+                          e.currentTarget.style.transform=e.currentTarget.style.transform+"scale(1.06)";
+                        }}
+                        onMouseLeave={e=>{
+                          e.currentTarget.style.boxShadow=`8px 8px 30px #000,0 0 30px ${c.acc}33`;
+                          e.currentTarget.style.borderColor=`${c.acc}44`;
+                        }}
+                        style={{position:"absolute",width:220,height:308,borderRadius:16,
+                          background:`linear-gradient(145deg,${c.a},${c.b})`,
+                          border:`2px solid ${c.acc}44`,
+                          boxShadow:`8px 8px 30px #000,0 0 30px ${c.acc}33`,
+                          animation:c.anim,animationDelay:c.delay,
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          cursor:"pointer",overflow:"hidden"}}>
+                        {/* Real card image */}
+                        {c.img&&<img src={c.img} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:1}} onError={e=>e.target.style.display="none"}/>}
+                        {/* Foil sheen */}
+                        <div style={{position:"absolute",inset:0,pointerEvents:"none",zIndex:3,
+                          background:"linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 40%,rgba(255,255,255,0.07) 65%,transparent 85%)"}}/>
+                        {/* shimmer lines */}
+                        <div style={{position:"absolute",inset:0,pointerEvents:"none",zIndex:3,
+                          backgroundImage:"repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(255,255,255,0.04) 5px,rgba(255,255,255,0.04) 10px)"}}/>
+                      </div>
+                    ))}
+
+                    {/* Pop-out overlay */}
+                    {poppedHeroCard!==null&&(()=>{
+                      const cards=[
+                        {a:"#7c2d12",b:"#3b0a00",acc:"#fb923c",img:"https://images.pokemontcg.io/sv3pt5/6_hires.png"},
+                        {a:"#1a1a3e",b:"#0d0d22",acc:"#a78bfa",img:"https://images.pokemontcg.io/swsh7/215_hires.png"},
+                        {a:"#064e3b",b:"#022c1f",acc:"#34d399",img:"https://images.pokemontcg.io/sv3pt5/205_hires.png"},
+                      ];
+                      const c=cards[poppedHeroCard];
+                      return(
+                        <div onClick={()=>setPoppedHeroCard(null)}
+                          style={{position:"fixed",inset:0,zIndex:600,
+                            background:"rgba(0,0,0,0.88)",backdropFilter:"blur(20px)",
+                            display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <div
+                            onMouseMove={e=>{
+                              const r=e.currentTarget.getBoundingClientRect();
+                              const x=(e.clientX-r.left)/r.width-0.5;
+                              const y=(e.clientY-r.top)/r.height-0.5;
+                              if(e.buttons===1) e.currentTarget.style.transform=`scale(1.02) rotateY(${x*28}deg) rotateX(${-y*20}deg)`;
+                            }}
+                            onMouseUp={e=>e.currentTarget.style.transform="scale(1) rotateY(0) rotateX(0)"}
+                            onMouseLeave={e=>e.currentTarget.style.transform="scale(1) rotateY(0) rotateX(0)"}
+                            style={{
+                              "--acc":c.acc,
+                              width:300,height:420,borderRadius:20,overflow:"hidden",cursor:"grab",
+                              background:`linear-gradient(145deg,${c.a},${c.b})`,
+                              border:`2px solid ${c.acc}`,
+                              animation:"popOut 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards, glowPulse 2.5s 0.6s ease-in-out infinite",
+                              position:"absolute",left:"50%",top:"50%",
+                              display:"flex",alignItems:"center",justifyContent:"center",
+                              transition:"transform 0.15s ease-out",
+                              transformStyle:"preserve-3d",
+                              filter:`drop-shadow(0 0 40px ${c.acc}99)`}}>
+                            {c.img&&<img src={c.img} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}} onError={e=>e.target.style.display="none"}/>}
+                            <div style={{position:"absolute",inset:0,
+                              background:"linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 40%,rgba(255,255,255,0.08) 65%,transparent 85%)",
+                              pointerEvents:"none",zIndex:2}}/>
+
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* APP PREVIEW */}
+            <section style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",
+              justifyContent:"center",scrollSnapAlign:"start",scrollSnapStop:"always",overflow:"hidden",padding:"0 52px"}}>
+              <div style={{fontFamily:FF_ORB,fontSize:32,fontWeight:700,color:WHITE,letterSpacing:-0.5,marginBottom:28}}>
+                Preview
+              </div>
+              <div style={{width:"100%",maxWidth:960,borderRadius:18,overflow:"hidden",
+                border:`1px solid rgba(255,255,255,0.1)`,boxShadow:`0 32px 100px rgba(0,0,0,0.7)`,flexShrink:0}}>
+                {/* Browser chrome */}
+                <div style={{background:"#1a1a1a",padding:"9px 16px",display:"flex",alignItems:"center",gap:7,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                  {["#ff5f57","#ffbd2e","#28c840"].map(c=><div key={c} style={{width:10,height:10,borderRadius:"50%",background:c}}/>)}
+                  <div style={{flex:1,background:"#111",borderRadius:6,padding:"4px 12px",marginLeft:8,fontFamily:FF_STM,fontSize:10,color:"rgba(255,255,255,0.3)",letterSpacing:1}}>pokefolio.app/binder</div>
+                </div>
+                {/* App mockup */}
+                <div style={{display:"flex",height:460,background:BASE}}>
+                  {/* Left: 5x5 grid */}
+                  <div style={{flex:1,padding:"14px",display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,alignContent:"start",borderRight:"1px solid rgba(255,255,255,0.06)"}}>
+                    {[
+                      ["#7c2d12","#3b0a00","#fb923c"],["#1a1a3e","#0d0d22","#f59e0b"],["#064e3b","#022c1f","#34d399"],
+                      ["#3b0764","#1e0338","#c084fc"],["#4c0519","#2d0010","#fb7185"],
+                      ["#1e3a5f","#0f2235","#93c5fd"],["#422006","#1c0e02","#f97316"],
+                      null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
+                    ].map((c,i)=>(
+                      <div key={i} style={{aspectRatio:"2/3",borderRadius:7,
+                        background:c?`linear-gradient(145deg,${c[0]},${c[1]})`:"rgba(255,255,255,0.02)",
+                        border:c?`1px solid ${c[2]}44`:"1px dashed rgba(255,255,255,0.08)"}}>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Right: analysis */}
+                  <div style={{width:250,background:SHADOW,display:"flex",flexDirection:"column",fontSize:0}}>
+                    <div style={{padding:"14px 14px 10px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                      <div style={{fontFamily:FF_STM,fontSize:7,color:MUTED,letterSpacing:2,marginBottom:5}}>TOTALT VÄRDE</div>
+                      <div style={{fontFamily:FF_ORB,fontSize:22,fontWeight:900,color:RED}}>12 440 kr</div>
+                      <div style={{fontFamily:FF_STM,fontSize:7,color:GREEN,marginTop:3}}>▲ +3,2% DENNA VECKA</div>
+                    </div>
+                    {/* Fake graph */}
+                    <div style={{padding:"12px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                      <div style={{fontFamily:FF_STM,fontSize:7,color:MUTED,letterSpacing:2,marginBottom:8}}>VÄRDEUTVECKLING</div>
+                      <svg viewBox="0 0 220 60" style={{width:"100%",height:60}}>
+                        <defs>
+                          <linearGradient id="pGrd" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={RED} stopOpacity="0.4"/>
+                            <stop offset="100%" stopColor={RED} stopOpacity="0"/>
+                          </linearGradient>
+                        </defs>
+                        <path d="M0,55 Q30,50 55,40 T100,25 T155,12 T220,5" fill="none" stroke={RED} strokeWidth="2"/>
+                        <path d="M0,55 Q30,50 55,40 T100,25 T155,12 T220,5 L220,60 L0,60 Z" fill="url(#pGrd)"/>
+                      </svg>
+                    </div>
+                    {/* Stats */}
+                    <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                      {[{l:"Kort totalt",v:"7"},{l:"Sidor",v:"1"},{l:"Snitt/kort",v:"1 777 kr"}].map(r=>(
+                        <div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                          <span style={{fontFamily:FF_RAJ,fontSize:11,color:MUTED}}>{r.l}</span>
+                          <span style={{fontFamily:FF_ORB,fontSize:9,fontWeight:700,color:WHITE}}>{r.v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Top cards */}
+                    <div style={{padding:"10px 14px"}}>
+                      <div style={{fontFamily:FF_STM,fontSize:7,color:MUTED,letterSpacing:2,marginBottom:8}}>TOPPINNEHAV</div>
+                      {[["#7c2d12","#3b0a00","#fb923c","3 200 kr"],["#1a1a3e","#0d0d22","#f59e0b","2 800 kr"],["#064e3b","#022c1f","#34d399","1 900 kr"]].map(([a,b,acc,val],i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                          <span style={{fontFamily:FF_STM,fontSize:8,color:MUTED,width:10}}>{i+1}</span>
+                          <div style={{width:22,height:30,borderRadius:4,background:`linear-gradient(145deg,${a},${b})`,border:`1px solid ${acc}44`,flexShrink:0}}/>
+                          <div>
+                            <div style={{fontFamily:FF_ORB,fontSize:9,fontWeight:700,color:WHITE}}>{val}</div>
+                            <div style={{fontFamily:FF_STM,fontSize:7,color:GREEN}}>▲ +2,1%</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PRICING */}
+            <section style={{height:"100vh",display:"flex",alignItems:"center",
+              scrollSnapAlign:"start",scrollSnapStop:"always",overflow:"hidden",
+              background:SHADOW,padding:"0 52px"}}>
+              <div style={{maxWidth:1200,margin:"0 auto",width:"100%"}}>
+                <div style={{fontFamily:FF_ORB,fontSize:32,fontWeight:700,color:WHITE,letterSpacing:-0.5,marginBottom:8,textAlign:"center"}}>
+                  MEDLEMSKAP
+                </div>
+                <p style={{fontFamily:FF_RAJ,fontSize:16,color:MUTED,marginBottom:36,textAlign:"center"}}>Välj den plan som passar dig</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,maxWidth:680,margin:"0 auto"}}>
+
+                  {/* GRATIS */}
+                  <div style={{background:BASE,borderRadius:16,padding:28,position:"relative",overflow:"hidden",
+                    boxShadow:`6px 6px 16px #000,-4px -4px 12px ${RAISED}99`,
+                    border:`1px solid rgba(255,255,255,0.08)`}}>
+                    <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)`}}/>
+                    <div style={{fontFamily:FF_STM,fontSize:11,color:MUTED,letterSpacing:2,marginBottom:14}}>GRATIS</div>
+                    <div style={{fontFamily:FF_ORB,fontSize:38,fontWeight:900,color:WHITE,marginBottom:2}}>0 kr</div>
+                    <div style={{fontFamily:FF_RAJ,fontSize:14,color:MUTED,marginBottom:24}}>för alltid</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
+                      {[
+                        {t:"1 binder",              ok:true},
+                        {t:"Max 50 kort",           ok:true},
+                        {t:"Pokémon-databas",       ok:true},
+                        {t:"Community-åtkomst",    ok:true},
+                        {t:"Live-priser",          ok:false},
+                        {t:"Värdegraf & historik", ok:false},
+                        {t:"Gradanalys (PSA/BGS)", ok:false},
+                      ].map(f=>(
+                        <div key={f.t} style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:16,height:16,borderRadius:"50%",flexShrink:0,
+                            background:f.ok?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.03)",
+                            display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={f.ok?MUTED:"rgba(255,255,255,0.2)"} strokeWidth="3">
+                              {f.ok?<path d="M20 6 9 17l-5-5"/>:<path d="M18 6 6 18M6 6l12 12"/>}
+                            </svg>
+                          </div>
+                          <span style={{fontFamily:FF_RAJ,fontSize:15,color:f.ok?MUTED:"rgba(255,255,255,0.25)",textDecoration:f.ok?"none":"line-through"}}>{f.t}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <CyberBtn color={MUTED} onClick={()=>user?setPage("portfolio"):setAuthPage("signup")}>Kom igång gratis</CyberBtn>
+                  </div>
+
+                  {/* MASTER */}
+                  <div style={{background:`linear-gradient(145deg,#1a0a0a,#0d0505)`,borderRadius:16,padding:28,position:"relative",overflow:"hidden",
+                    boxShadow:`6px 6px 16px #000,-4px -4px 12px ${RAISED}99,0 0 40px ${RED}18`,
+                    border:`1px solid ${RED}44`}}>
+                    <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${RED}99,transparent)`}}/>
+                    <div style={{position:"absolute",top:14,right:14,background:RED,borderRadius:6,padding:"2px 8px",
+                      fontFamily:FF_STM,fontSize:9,color:"#fff",letterSpacing:1}}>POPULÄR</div>
+                    <div style={{fontFamily:FF_STM,fontSize:11,color:RED,letterSpacing:2,marginBottom:14}}>MASTER</div>
+                    <div style={{fontFamily:FF_ORB,fontSize:38,fontWeight:900,color:WHITE,marginBottom:2}}>50 kr</div>
+                    <div style={{fontFamily:FF_RAJ,fontSize:14,color:MUTED,marginBottom:24}}>per månad</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
+                      {[
+                        "Obegränsade binders",
+                        "Obegränsat antal kort",
+                        "Live-priser från Cardmarket",
+                        "Värdegraf & prishistorik",
+                        "Gradanalys (PSA / BGS / CGC)",
+                      ].map(f=>(
+                        <div key={f} style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:16,height:16,borderRadius:"50%",background:`${RED}22`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={RED} strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                          </div>
+                          <span style={{fontFamily:FF_RAJ,fontSize:15,color:WHITE}}>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <CyberBtn lg onClick={()=>setAuthPage("signup")}>Bli Master</CyberBtn>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            {/* FOOTER */}
+            <footer style={{scrollSnapAlign:"start",background:SHADOW,borderTop:`1px solid ${RED}15`,padding:"40px 52px 28px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:28}}>
+                <div>
+                  <div style={{fontFamily:FF_ORB,fontSize:20,fontWeight:900,letterSpacing:2,color:WHITE,marginBottom:10}}>
+                    POKÉ<span style={{color:RED}}>FOLIO</span>
+                  </div>
+                  <p style={{fontSize:16,color:MUTED,lineHeight:1.75,maxWidth:240}}>Spåra din Pokémon-samling.</p>
+                </div>
+                {[
+                  {t:"Sidor", links:[
+                    {l:"Utforska", p:"utforska"},
+                    {l:"Portfolio", p:"portfolio"},
+                    {l:"Community", p:"community"},
+                  ]},
+                  {t:"Support", links:[
+                    {l:"Community", p:"community"},
+                    {l:"Discord", p:null, href:"https://discord.gg/pokefolio"},
+                  ]},
+                ].map((col,i)=>(
+                  <div key={i}>
+                    <div style={{fontFamily:FF_STM,fontSize:13,color:MUTED,letterSpacing:2,marginBottom:16}}>{col.t.toUpperCase()}</div>
+                    {col.links.map(item=>(
+                      item.href
+                        ? <a key={item.l} href={item.href} target="_blank" rel="noreferrer"
+                            style={{fontFamily:FF_RAJ,fontSize:16,color:WHITE,marginBottom:10,
+                              cursor:"pointer",display:"block",textDecoration:"none",transition:"color .15s"}}
+                            onMouseEnter={e=>e.currentTarget.style.color=RED}
+                            onMouseLeave={e=>e.currentTarget.style.color=WHITE}>
+                            {item.l}
+                          </a>
+                        : <div key={item.l} onClick={()=>item.p&&setPage(item.p)}
+                            style={{fontFamily:FF_RAJ,fontSize:16,color:item.p?WHITE:MUTED,marginBottom:10,
+                              cursor:item.p?"pointer":"default",transition:"color .15s"}}
+                            onMouseEnter={e=>{ if(item.p) e.currentTarget.style.color=RED; }}
+                            onMouseLeave={e=>{ if(item.p) e.currentTarget.style.color=WHITE; }}>
+                            {item.l}
+                          </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:20}}>
+                <span style={{fontFamily:FF_STM,fontSize:13,color:MUTED,letterSpacing:1}}>© 2026 POKÉFOLIO</span>
+              </div>
+            </footer>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
